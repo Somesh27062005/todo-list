@@ -37,38 +37,28 @@ todo-list/
 └── (other config files)
 
 
-###
 
-✅ What I Learned / Why This Project
+---
+
+## ✅ What I Learned / Why This Project
 
 Building this Todo-List app helped me understand and practice:
 
-Setting up a full-stack MERN application (frontend, backend, DB)
+- Setting up a full-stack MERN application (frontend, backend, DB)
+- Implementing user authentication (JWT, secure routes)
+- CRUD operations with MongoDB + Mongoose
+- Connecting React frontend to backend API
+- Handling state management + async API calls
+- Structuring a scalable MERN project
 
-Implementing user authentication (JWT, secure routes)
+---
 
-CRUD operations with MongoDB + Mongoose
+## 🗂️ Future Improvements (TODO)
 
-Connecting React frontend to backend API and managing state / async calls
-
-Structuring project in scalable way (clear separation of frontend/back end) 
-Medium
-+1
-
-###
-
-🗂️ What Could Be Improved / Future Enhancements (TODO)
-
-Add user profile/user settings
-
-Add due-date / deadline & reminder feature
-
-Add task categories/tags or priorities
-
-Add filtering / sorting / search of tasks
-
-Add better UI/UX, maybe mobile friendly / responsive improvements
-
-Add unit/integration tests, or end-to-end tests
-
-Deploy to a cloud provider (backend + frontend)
+- Add user profile/user settings  
+- Add due dates & reminder notifications  
+- Add categories/priorities  
+- Add filtering, sorting & search  
+- Improve UI/UX and mobile responsiveness  
+- Add tests (unit + integration)  
+- Deploy full MERN stack to cloud  
