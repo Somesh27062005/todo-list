@@ -37,6 +37,7 @@ todo-list/
 └── (other config files)
 
 
+###
 
 ✅ What I Learned / Why This Project
 
@@ -53,6 +54,8 @@ Connecting React frontend to backend API and managing state / async calls
 Structuring project in scalable way (clear separation of frontend/back end) 
 Medium
 +1
+
+###
 
 🗂️ What Could Be Improved / Future Enhancements (TODO)
 
