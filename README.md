@@ -1,48 +1,35 @@
-# 📝 Todo List — MERN Todo App
+# 📝 Todo-List (MERN)
 
-A simple To-Do List application built with the **MERN** stack (React + Node/Express + MongoDB).  
-This project is split into two folders: `backend/` (API + auth + DB) and `frontend/` (React UI). See repository structure below. :contentReference[oaicite:1]{index=1}
-
----
-
-## Table of Contents
-- [Features](#features)  
-- [Tech Stack](#tech-stack)  
-- [Repository structure](#repository-structure)  
-- [Quick start](#quick-start)  
-  - [Prerequisites](#prerequisites)  
-  - [Backend setup](#backend-setup)  
-  - [Frontend setup](#frontend-setup)  
-- [Environment variables](#environment-variables)  
-- [API (overview)](#api-overview)  
-- [Development tips](#development-tips)  
-- [Planned improvements](#planned-improvements)  
-- [Contributing](#contributing)  
-- [License & Contact](#license--contact)
+A simple full-stack To-Do List web application built with the MERN stack (MongoDB, Express, React, Node).  
+Allows users to sign up / log in, and manage their personal to-do tasks via a clean UI + REST API.  
 
 ---
 
-## Features
-- User registration & login (JWT + cookies)  
-- Create / Read / Update / Delete todos  
-- Mark tasks completed / incomplete  
-- Minimal responsive UI for quick task management
+## 🔧 What it does / Features
+
+- 👤 User Authentication (signup / login)  
+- ✅ Create new todos  
+- ✏️ Update/edit existing todos  
+- ✔️ Mark todos as completed / not completed  
+- 🗑️ Delete todos  
+- 📄 List view of all todos for the logged-in user  
+- 🔒 Secure backend + MongoDB storage (via Express + Mongoose + MongoDB)  
+- 🌐 Frontend UI built with React — responsive and easy to use  
 
 ---
 
-## Tech Stack
-- **Frontend:** React, Axios  
-- **Backend:** Node.js, Express, Mongoose  
-- **Database:** MongoDB (Compass locally or Atlas in production)  
-- **Auth:** JWT (stored in HTTP-only cookie)  
-- **Dev tools:** nodemon, eslint/prettier (optional)
+## 🛠️ Tech Stack & Structure
 
----
-
-## Repository structure
+- **Frontend**: React (or create-react-app / whichever setup you chose)  
+- **Backend**: Node.js + Express.js  
+- **Database**: MongoDB (local or cloud, e.g. MongoDB Atlas)  
+- **ORM / ODM**: Mongoose (for MongoDB models)  
+- **Authentication**: JSON Web Tokens (JWT) and possibly cookies/session — adjust per your implementation  
+- **Project Structure** (suggested / typical for MERN) :contentReference[oaicite:1]{index=1}  
 
 todo-list/
-├── backend/ # Express API, models, controllers, routes
-├── frontend/ # React app (create-react-app or Vite)
+├── backend/ # Express + Node + MongoDB + Auth logic
+├── frontend/ # React UI (components, pages, state, API calls)
 ├── .gitignore
-└── req.http # useful HTTP requests for testing (REST client)
+├── README.md # ← this file
+└── (other config files)
