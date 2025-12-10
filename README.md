@@ -40,3 +40,9 @@ This project is split into two folders: `backend/` (API + auth + DB) and `fronte
 ---
 
 ## Repository structure
+
+todo-list/
+├── backend/ # Express API, models, controllers, routes
+├── frontend/ # React app (create-react-app or Vite)
+├── .gitignore
+└── req.http # useful HTTP requests for testing (REST client)
