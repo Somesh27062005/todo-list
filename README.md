@@ -27,12 +27,15 @@ Allows users to sign up / log in, and manage their personal to-do tasks via a cl
 - **Authentication**: JSON Web Tokens (JWT) and possibly cookies/session — adjust per your implementation  
 - **Project Structure** (suggested / typical for MERN) :contentReference[oaicite:1]{index=1}  
 
+## 📁 Project Structure
+
 todo-list/
-├── backend/ # Express + Node + MongoDB + Auth logic
-├── frontend/ # React UI (components, pages, state, API calls)
+├── backend/        # Express + Node + MongoDB + Auth logic
+├── frontend/       # React UI (components, pages, state, API calls)
 ├── .gitignore
-├── README.md # ← this file
+├── README.md
 └── (other config files)
+
 
 
 ✅ What I Learned / Why This Project
