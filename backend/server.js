@@ -10,10 +10,16 @@ const app = express();
 
 const PORT = process.env.PORT || 8000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/pvptododb";
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const rawClientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+const clientUrl = rawClientUrl.replace(/\/$/, "");
 
 //enable cors
-app.use(cors({ origin: [CLIENT_URL], credentials: true }));
+app.use(
+  cors({
+    origin: [clientUrl, "http://localhost:5173"],
+    credentials: true,
+  })
+);
 //add body parser middleware
 app.use(express.json());
 //add cookie parser middleware
