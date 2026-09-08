@@ -4,6 +4,7 @@ import axios from "axios";
 import { Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { FaEdit, FaTrash, FaCheck, FaTasks, FaInbox, FaClock } from "react-icons/fa";
+import { API_BASE_URL } from "../config";
 
 function TaskList() {
   const { currentUser, setCurrentUser } = useContext(loginContextObj);
@@ -38,7 +39,7 @@ function TaskList() {
   const saveModifiedTask = async (modifiedTaskObj) => {
     if (!currentUser?._id || !taskBeingEdited?._id) return;
     let res = await axios.put(
-      `http://localhost:8000/user-api/edit-todo/userid/${currentUser._id}/taskid/${taskBeingEdited._id}`,
+      `${API_BASE_URL}/user-api/edit-todo/userid/${currentUser._id}/taskid/${taskBeingEdited._id}`,
       modifiedTaskObj,
       { withCredentials: true }
     );
@@ -52,7 +53,7 @@ function TaskList() {
   const setTaskCompleted = async (taskid) => {
     if (!currentUser?._id) return;
     let res = await axios.put(
-      `http://localhost:8000/user-api/edit-status/userid/${currentUser._id}/taskid/${taskid}`,
+      `${API_BASE_URL}/user-api/edit-status/userid/${currentUser._id}/taskid/${taskid}`,
       null,
       { withCredentials: true }
     );
@@ -64,7 +65,7 @@ function TaskList() {
   const deleteTask = async (taskid) => {
     if (!currentUser?._id) return;
     let res = await axios.put(
-      `http://localhost:8000/user-api/delete-todo/userid/${currentUser._id}/taskid/${taskid}`,
+      `${API_BASE_URL}/user-api/delete-todo/userid/${currentUser._id}/taskid/${taskid}`,
       null,
       { withCredentials: true }
     );

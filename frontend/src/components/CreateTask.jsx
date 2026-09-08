@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { loginContextObj } from "../contexts/LoginContext";
 import axios from "axios";
 import { FaPlusCircle } from "react-icons/fa";
+import { API_BASE_URL } from "../config";
 
 function CreateTask() {
   const { currentUser, setCurrentUser } = useContext(loginContextObj);
@@ -18,7 +19,7 @@ function CreateTask() {
     if (!currentUser?._id) return;
     try {
       let res = await axios.put(
-        `http://localhost:8000/user-api/todo/${currentUser._id}`,
+        `${API_BASE_URL}/user-api/todo/${currentUser._id}`,
         newTask,
         { withCredentials: true }
       );

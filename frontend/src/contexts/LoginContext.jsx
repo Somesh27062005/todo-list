@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 //create context object
 export const loginContextObj = createContext();
@@ -12,7 +13,7 @@ function LoginContext({ children }) {
 
   const pageRefresh = async () => {
     try {
-      let res = await axios.get("http://localhost:8000/refresh", {
+      let res = await axios.get(`${API_BASE_URL}/refresh`, {
         withCredentials: true,
       });
 
@@ -33,7 +34,7 @@ function LoginContext({ children }) {
   //user login
   const userLogin = async (userCredObj) => {
     try {
-      let res = await axios.post("http://localhost:8000/user-api/login", userCredObj, {
+      let res = await axios.post(`${API_BASE_URL}/user-api/login`, userCredObj, {
         withCredentials: true,
       });
       if (res.status === 200) {
@@ -55,7 +56,7 @@ function LoginContext({ children }) {
   //user logout
   const userLogout = async () => {
     try {
-      let res = await axios.get("http://localhost:8000/user-api/logout", {
+      let res = await axios.get(`${API_BASE_URL}/user-api/logout`, {
         withCredentials: true,
       });
       if (res.status === 200) {

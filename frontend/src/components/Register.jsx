@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FaUserCheck } from "react-icons/fa";
+import { API_BASE_URL } from "../config";
 
 function Register() {
   const {
@@ -17,7 +18,7 @@ function Register() {
   const onFormSubmit = async (newUser) => {
     newUser.todos = [];
     try {
-      let res = await axios.post("http://localhost:8000/user-api/user", newUser);
+      let res = await axios.post(`${API_BASE_URL}/user-api/user`, newUser);
       if (res.status === 201) {
         navigate("/login");
       } else {
