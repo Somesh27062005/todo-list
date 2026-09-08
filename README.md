@@ -113,7 +113,7 @@ todo-list/
 | Variable | Description | Default / Example |
 | :--- | :--- | :--- |
 | `PORT` | Server listening port | `8000` |
-| `MONGO_URI` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/pvptododb` |
+| `MONGO_URI` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/taskflowdb` |
 | `SECRET_KEY` | 256-bit JWT secret signing key | `e495f821e8e15e49a461f79f1f7543d937daae5ee...` |
 | `CLIENT_URL` | Frontend URL for CORS origin | `https://somesh-todo-list.vercel.app` |
 

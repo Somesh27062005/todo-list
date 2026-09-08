@@ -9,7 +9,7 @@ import { UserModel } from "./models/UserModel.js";
 const app = express();
 
 const PORT = process.env.PORT || 8000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/pvptododb";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/taskflowdb";
 const rawClientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 const clientUrl = rawClientUrl.replace(/\/$/, "");
 
