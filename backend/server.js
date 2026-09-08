@@ -1,4 +1,4 @@
-//create server
+import "dotenv/config";
 import express from "express";
 import { connect } from "mongoose";
 import cookieParser from "cookie-parser";
@@ -8,8 +8,12 @@ import { verifyToken } from "./middlewares/verifyToken.js";
 import { UserModel } from "./models/UserModel.js";
 const app = express();
 
+const PORT = process.env.PORT || 8000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/pvptododb";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
 //enable cors
-app.use(cors({ origin: ["http://localhost:5173"] ,credentials:true}));
+app.use(cors({ origin: [CLIENT_URL], credentials: true }));
 //add body parser middleware
 app.use(express.json());
 //add cookie parser middleware
@@ -22,10 +26,10 @@ app.use("/user-api", userRoute);
 async function connectDBAndStartServer() {
   try {
     //connect to database server
-    await connect("mongodb://localhost:27017/pvptododb");
+    await connect(MONGO_URI);
     console.log("DB connection success");
     //start HTTP server
-    app.listen(8000, console.log("server listening on port 8000"));
+    app.listen(PORT, () => console.log(`server listening on port ${PORT}`));
   } catch (err) {
     console.log("Err in DB connection :", err);
   }

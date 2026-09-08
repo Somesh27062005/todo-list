@@ -28,6 +28,15 @@ userRoute.post("/user", async (req, res) => {
   }
 });
 
+import { verifyToken } from "../middlewares/verifyToken.js";
+
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+};
+
 //Route for User authentication(Login)
 userRoute.post("/login", async (req, res) => {
   try {
@@ -46,13 +55,10 @@ userRoute.post("/login", async (req, res) => {
         res.status(404).json({ message: "Invalid password" });
       } else {
         //generate token
-        let encodedToken = sign({ email: userInDb.email }, "abcdef", { expiresIn: "1h" });
+        let secretKey = process.env.SECRET_KEY || "abcdef";
+        let encodedToken = sign({ email: userInDb.email }, secretKey, { expiresIn: "1h" });
         //save in cookies
-        res.cookie("token", encodedToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        });
+        res.cookie("token", encodedToken, cookieOptions);
         //send res
         res.status(200).json({ message: "login success", payload: userInDb });
       }
@@ -60,16 +66,11 @@ userRoute.post("/login", async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
-})
-
+});
 
 //Logout User
 userRoute.get("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true 
-  });
+  res.clearCookie("token", cookieOptions);
   //res
   res.status(200).json({ message: "Logout success" });
 });
@@ -79,59 +80,67 @@ userRoute.get("/logout", (req, res) => {
 
 
 //Route to add new todo
-userRoute.put("/todo/:userid", async (req, res) => {
-  //get new task obj
-  let newTask = req.body;
-  //get userid from url
-  let uid = req.params.userid;
-  //push newtask to "todos" array of user obj
-  let userAfterAddingTodo = await UserModel.findOneAndUpdate(
-    { _id: uid },
-    { $push: { todos: newTask } },
-    { new: true }
-  );
-  //send res
-  res.status(200).json({ message: "todo added", payload: userAfterAddingTodo });
+userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
+  try {
+    //get new task obj
+    let newTask = req.body;
+    newTask.createdAt = new Date();
+    //get userid from url
+    let uid = req.params.userid;
+    //push newtask to "todos" array of user obj
+    let userAfterAddingTodo = await UserModel.findOneAndUpdate(
+      { _id: uid },
+      { $push: { todos: newTask } },
+      { new: true }
+    );
+    //send res
+    res.status(200).json({ message: "todo added", payload: userAfterAddingTodo });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 //Route to edit task
-userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", async (req, res) => {
+userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (req, res) => {
   try {
     //get userid and taskid from url params
     let { userid, taskid } = req.params; //{userid:"",taskid:""}
-    console.log(userid,taskid)
     //get modifed taskobj
     let modifiedTaskObj = req.body;
     //update task
+    let updateFields = {
+      "todos.$.taskName": modifiedTaskObj.taskName,
+      "todos.$.description": modifiedTaskObj.description,
+    };
+    if (modifiedTaskObj.status) {
+      updateFields["todos.$.status"] = modifiedTaskObj.status;
+    }
     let userWithModifiedTask = await UserModel.findOneAndUpdate(
       { _id: userid, "todos._id": taskid },
-      {
-        $set: {
-          "todos.$.taskName": modifiedTaskObj.taskName,
-          "todos.$.description": modifiedTaskObj.description,
-          "todos.$.status": modifiedTaskObj.status,
-        },
-      },
+      { $set: updateFields },
       { new: true }
     );
 
     //send res
     res.status(200).json({ message: "task modified", payload: userWithModifiedTask });
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 //Route to set task as completed
-userRoute.put("/edit-status/userid/:userid/taskid/:taskid", async (req, res) => {
+userRoute.put("/edit-status/userid/:userid/taskid/:taskid", verifyToken, async (req, res) => {
   try {
     //get userid and taskid from url params
     let { userid, taskid } = req.params; //{userid:"",taskid:""}
 
-    //update task by changing status to "completed"
+    //update task by changing status to "completed" and adding completedAt timestamp
     let userWithModifiedTask = await UserModel.findOneAndUpdate(
       { _id: userid, "todos._id": taskid },
       {
         $set: {
           "todos.$.status": "completed",
+          "todos.$.completedAt": new Date(),
         },
       },
       { new: true }
@@ -139,16 +148,17 @@ userRoute.put("/edit-status/userid/:userid/taskid/:taskid", async (req, res) => 
 
     //send res
     res.status(200).json({ message: "task status modified", payload: userWithModifiedTask });
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 //Route to delete a task
-userRoute.put("/delete-todo/userid/:userid/taskid/:taskid", async (req, res) => {
+userRoute.put("/delete-todo/userid/:userid/taskid/:taskid", verifyToken, async (req, res) => {
   try {
     //get userid and taskid from url params
     let { userid, taskid } = req.params; //{userid:"",taskid:""}
 
-    //update task by changing status to "completed"
     let userWithModifiedTask = await UserModel.findOneAndUpdate(
       { _id: userid },
       { $pull: { todos: { _id: taskid } } },
@@ -157,5 +167,7 @@ userRoute.put("/delete-todo/userid/:userid/taskid/:taskid", async (req, res) => 
 
     //send res
     res.status(200).json({ message: "task deleted", payload: userWithModifiedTask });
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });

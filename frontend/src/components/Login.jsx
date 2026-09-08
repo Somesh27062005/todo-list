@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { loginContextObj } from "../contexts/LoginContext";
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 import { IoLogInOutline } from "react-icons/io5";
 
 function Login() {
@@ -10,53 +10,69 @@ function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { userLogin, loginErrMessage ,loginStatus} = useContext(loginContextObj);
-  const navigate=useNavigate()
+  const { userLogin, loginErrMessage, loginStatus } = useContext(loginContextObj);
+  const navigate = useNavigate();
 
-  //login form submit
   const onLoginFormSubmit = (userCredObj) => {
-    console.log(userCredObj);
     userLogin(userCredObj);
   };
 
-
-  useEffect(()=>{
-    if(loginStatus===true){
-      //navigate to user profile
-      navigate("/user-profile")
+  useEffect(() => {
+    if (loginStatus === true) {
+      navigate("/user-profile");
     }
-  },[loginStatus])
+  }, [loginStatus, navigate]);
 
   return (
-    <div>
-      <h1 className="text-center text-info display-3">User Login</h1>
+    <div className="row justify-content-center mt-5">
+      <div className="col-md-6 col-lg-5">
+        <div className="custom-card">
+          <div className="text-center mb-4">
+            <h2 className="fw-bold mb-1">Welcome Back</h2>
+            <p className="text-muted small">Log in to manage your tasks</p>
+          </div>
 
-      {/* display login error message */}
-      {
-        loginErrMessage.length !== 0 && 
-        <p className="fs-3 text-center text-danger">{loginErrMessage}</p>
-      }
-      {/* registration form */}
-      <form className="w-50 mx-auto mt-5" onSubmit={handleSubmit(onLoginFormSubmit)}>
-        <div className="mb-3">
-          <input type="email" {...register("email", { required: true })} className="form-control" placeholder="Email" />
-          {/* email vaildation error messages */}
-          {errors.email?.type === "required" && <p className="text-danger">Email is required</p>}
+          {loginErrMessage.length !== 0 && (
+            <div className="alert alert-danger text-center py-2" role="alert">
+              {loginErrMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onLoginFormSubmit)} autoComplete="off">
+            <div className="mb-3">
+              <label className="form-label fw-semibold text-secondary small">Email Address</label>
+              <input
+                type="email"
+                {...register("email", { required: true })}
+                className="form-control form-control-custom"
+                placeholder="Email"
+                autoComplete="off"
+              />
+              {errors.email?.type === "required" && (
+                <small className="text-danger mt-1 d-block">Email is required</small>
+              )}
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-semibold text-secondary small">Password</label>
+              <input
+                type="password"
+                {...register("password", { required: true })}
+                className="form-control form-control-custom"
+                placeholder="Password"
+                autoComplete="new-password"
+              />
+              {errors.password?.type === "required" && (
+                <small className="text-danger mt-1 d-block">Password is required</small>
+              )}
+            </div>
+
+            <button type="submit" className="btn btn-primary-custom w-100 d-flex align-items-center justify-content-center gap-2">
+              <IoLogInOutline className="fs-4" /> Log In
+            </button>
+          </form>
         </div>
-        <div className="mb-3">
-          <input
-            type="password"
-            {...register("password", { required: true })}
-            className="form-control"
-            placeholder="Password"
-          />
-          {/* name vaildation error messages */}
-          {errors.password?.type === "required" && <p className="text-danger">Password is required</p>}
-        </div>
-        <button type="submit" className="btn btn-success">
-          <IoLogInOutline />
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

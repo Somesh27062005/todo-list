@@ -21,6 +21,8 @@ const userSchema = new Schema(
         taskName: { type: String, required: true },
         description: { type: String, required: true },
         status: { type: String, default: "pending" },
+        createdAt: { type: Date, default: Date.now },
+        completedAt: { type: Date },
       },
     ],
   },

@@ -11,55 +11,62 @@ function LoginContext({ children }) {
   const [loginErrMessage, setLoginErrorMessage] = useState("");
 
   const pageRefresh = async () => {
-    try{
-      let res = await axios.get("http://localhost:8000/refresh", {
-        withCredentials: true
-      });
-
-      setCurrentUser(res.data.payload);
-      setLoginStatus(true);
-      setLoginErrorMessage("");
-    } catch (err) {
-      //when no token exists or expired token -> refresh fails -> user is not logged in.
-      if(err.response.status === 401){
-        setLoginStatus(false);
-        setCurrentUser(null);
-        //DO NOT show any message during initial load
-        return;
-      }
-      console.log("Error in page refresh: ", err.response.data.message);
-    }
-  }
-
-  //user login
-  const userLogin = async (userCredObj) => {
     try {
-      let res = await axios.post("http://localhost:8000/user-api/login", userCredObj,{
-        withCredentials:true
+      let res = await axios.get("http://localhost:8000/refresh", {
+        withCredentials: true,
       });
-      //if login success
-      if (res.status === 200) {
-        //update the user
+
+      if (res.data?.payload) {
         setCurrentUser(res.data.payload);
         setLoginStatus(true);
         setLoginErrorMessage("");
       }
     } catch (err) {
-      console.log("err is ", err.response.data.message);
-      setLoginErrorMessage(err.response.data.message)
+      setLoginStatus(false);
+      setCurrentUser(null);
+      if (err.response?.status !== 401) {
+        console.log("Error in page refresh: ", err?.response?.data?.message || err.message);
+      }
+    }
+  };
+
+  //user login
+  const userLogin = async (userCredObj) => {
+    try {
+      let res = await axios.post("http://localhost:8000/user-api/login", userCredObj, {
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        setCurrentUser(res.data.payload);
+        setLoginStatus(true);
+        setLoginErrorMessage("");
+      }
+    } catch (err) {
+      let msg = err.response?.data?.message || "Login failed";
+      console.log("err is ", msg);
+      setLoginErrorMessage(msg);
     }
   };
 
   useEffect(() => {
     pageRefresh();
-  });
-
+  }, []);
 
   //user logout
   const userLogout = async () => {
-    let res=await axios.get("http://localhost:8000/user-api/logout",{withCredentials:true})
-    if(res.status===200){
-        setLoginStatus(false)
+    try {
+      let res = await axios.get("http://localhost:8000/user-api/logout", {
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        setLoginStatus(false);
+        setCurrentUser(null);
+        setLoginErrorMessage("");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      setLoginStatus(false);
+      setCurrentUser(null);
     }
   };
 
