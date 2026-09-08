@@ -31,13 +31,14 @@ app.use("/user-api", userRoute);
 //connect to db
 async function connectDBAndStartServer() {
   try {
-    //connect to database server
+    console.log("Connecting to MongoDB...");
     await connect(MONGO_URI);
     console.log("DB connection success");
     //start HTTP server
-    app.listen(PORT, () => console.log(`server listening on port ${PORT}`));
+    app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
   } catch (err) {
-    console.log("Err in DB connection :", err);
+    console.error("FATAL ERROR: Could not connect to MongoDB:", err.message);
+    process.exit(1);
   }
 }
 
