@@ -14,9 +14,15 @@
 
   ---
 
-  ### 🌐 [Live App Demo](https://somesh-todo-list.vercel.app/)
-
 </div>
+
+<br />
+
+## 🌐 Live Demo & Deployment
+
+👉 **Live Frontend Application**: [https://somesh-todo-list.vercel.app/](https://somesh-todo-list.vercel.app/)  
+⚙️ **Production Backend API**: Hosted on [Render](https://render.com)  
+🗄️ **Database**: [MongoDB Atlas](https://www.mongodb.com/atlas)
 
 <br />
 
