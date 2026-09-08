@@ -25,6 +25,11 @@ app.use(express.json());
 //add cookie parser middleware
 app.use(cookieParser());
 
+//Root API status route
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "TaskFlow MERN API Server is Running", status: "OK" });
+});
+
 //if path starts with /user-api. forward req to UserROute
 app.use("/user-api", userRoute);
 
