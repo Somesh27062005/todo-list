@@ -33,6 +33,8 @@
 | **Frontend Load Time** | Vercel Edge | `388 ms` |
 | **Backend API Latency** | Render Server | `241 ms` |
 
+> ⚡ **Concurrency Stress Test**: 100% success rate under 30 parallel users (0 dropped requests, 24.23 req/sec throughput).
+
 <br />
 
 ## 🌟 Key Features
