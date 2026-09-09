@@ -156,7 +156,7 @@ todo-list/
    ```
 
 4. **Access Application**
-   Open `http://localhost:5173` in your browser.
+   Open the link in your browser.
 
 <br />
 
