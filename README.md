@@ -28,13 +28,10 @@
 
 ## 📊 Performance & Benchmarks
 
-| Metric | Target / Service | Value | Status |
-| :--- | :--- | :--- | :---: |
-| **Frontend Min CDN Latency** | Vercel Edge Network | `39.3 ms` | ⚡ Fast |
-| **Frontend Avg Load Time** | Vercel Global Edge | `388.7 ms` | ✅ Optimal |
-| **Backend Warm API Latency** | Render Web Service | `241.6 ms` (Min) / `477.9 ms` (Avg) | ✅ Optimal |
-| **API Success Rate** | Production Endpoints | `100%` (200 OK) | 🛡️ Stable |
-| **Bundle Architecture** | Vite + React 19 | ESM Code Splitting | 🚀 Optimized |
+| Metric | Service | Value |
+| :--- | :--- | :--- |
+| **Frontend Load Time** | Vercel Edge | `388 ms` |
+| **Backend API Latency** | Render Server | `241 ms` |
 
 <br />
 
