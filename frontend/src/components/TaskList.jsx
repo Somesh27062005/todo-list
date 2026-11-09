@@ -49,7 +49,7 @@ function TaskList() {
   // Filters & sorting state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("dueDateAsc");
 
   // Action loading & modal states
   const [completingTaskId, setCompletingTaskId] = useState(null);
