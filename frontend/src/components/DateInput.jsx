@@ -9,12 +9,15 @@ function DateInput({
   onBlur,
   disabled = false,
   placeholder = "DD/MM/YYYY",
+  minDate,
+  maxDate = "2100-12-31",
 }) {
   const nativePickerRef = useRef(null);
   const isoValue = parseDisplayDateToIso(value);
 
   const handleTextChange = (e) => {
-    onChange(e.target.value);
+    const sanitized = e.target.value.replace(/[^\d/-]/g, "");
+    onChange(sanitized);
   };
 
   const handleTextBlur = (e) => {
@@ -76,6 +79,8 @@ function DateInput({
         ref={nativePickerRef}
         type="date"
         value={isoValue}
+        min={minDate}
+        max={maxDate}
         onChange={handleNativePickerChange}
         disabled={disabled}
         tabIndex={-1}

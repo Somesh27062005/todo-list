@@ -16,16 +16,68 @@ const baseCookieOptions = {
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HAS_LETTER_REGEX = /\p{L}/u;
+const MAX_DUE_DATE_STR = "2100-12-31";
+
+function getReferenceTodayStr(tzOffsetMinutes) {
+  const numericOffset = Number(tzOffsetMinutes);
+  const offsetMs =
+    Number.isFinite(numericOffset) && numericOffset >= -840 && numericOffset <= 840
+      ? numericOffset * 60 * 1000
+      : 0;
+  return new Date(Date.now() - offsetMs).toISOString().slice(0, 10);
+}
 
 function parseRequiredDueDate(dueDateValue) {
-  if (dueDateValue === undefined || dueDateValue === null || String(dueDateValue).trim() === "") {
-    return { valid: false, missing: true, value: null };
+  if (dueDateValue === undefined || dueDateValue === null) {
+    return { valid: false, missing: true, value: null, dateStr: "" };
   }
-  const parsed = new Date(dueDateValue);
-  if (Number.isNaN(parsed.getTime())) {
-    return { valid: false, missing: false, value: null };
+  if (typeof dueDateValue !== "string") {
+    return { valid: false, missing: false, value: null, dateStr: "" };
   }
-  return { valid: true, missing: false, value: parsed };
+
+  const raw = dueDateValue.trim();
+  if (!raw) {
+    return { valid: false, missing: true, value: null, dateStr: "" };
+  }
+
+  const isoDateMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const isoTimestampMatch = raw.match(
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
+  );
+
+  let dateStr;
+  let parsed;
+
+  if (isoDateMatch) {
+    const year = Number(isoDateMatch[1]);
+    const month = Number(isoDateMatch[2]);
+    const day = Number(isoDateMatch[3]);
+    const probe = new Date(Date.UTC(year, month - 1, day));
+    if (
+      probe.getUTCFullYear() !== year ||
+      probe.getUTCMonth() !== month - 1 ||
+      probe.getUTCDate() !== day
+    ) {
+      return { valid: false, missing: false, value: null, dateStr: "" };
+    }
+    dateStr = raw;
+    parsed = probe;
+  } else if (isoTimestampMatch) {
+    parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) {
+      return { valid: false, missing: false, value: null, dateStr: "" };
+    }
+    dateStr = parsed.toISOString().slice(0, 10);
+  } else {
+    return { valid: false, missing: false, value: null, dateStr: "" };
+  }
+
+  if (dateStr > MAX_DUE_DATE_STR || dateStr < "1900-01-01") {
+    return { valid: false, missing: false, value: null, dateStr: "" };
+  }
+
+  return { valid: true, missing: false, value: parsed, dateStr };
 }
 
 // Route for User registration
@@ -36,14 +88,23 @@ userRoute.post("/user", async (req, res) => {
     const trimmedName = typeof name === "string" ? name.trim() : "";
     const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    if (trimmedName.length < 2) {
-      return res.status(400).json({ message: "Name must be at least 2 characters long" });
+    if (trimmedName.length < 2 || trimmedName.length > 50 || !HAS_LETTER_REGEX.test(trimmedName)) {
+      return res.status(400).json({
+        message: "Name must be 2-50 characters and contain at least one letter",
+      });
     }
-    if (!EMAIL_REGEX.test(normalizedEmail)) {
+    if (normalizedEmail.length > 100 || !EMAIL_REGEX.test(normalizedEmail)) {
       return res.status(400).json({ message: "Please provide a valid email address" });
     }
-    if (typeof password !== "string" || password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    if (
+      typeof password !== "string" ||
+      password.trim().length < 6 ||
+      password.length > 72 ||
+      password !== password.trim()
+    ) {
+      return res.status(400).json({
+        message: "Password must be 6-72 characters without leading or trailing spaces",
+      });
     }
 
     const existingUser = await UserModel.findOne({ email: normalizedEmail });
@@ -75,8 +136,8 @@ userRoute.post("/login", async (req, res) => {
     const { email, password } = req.body || {};
     const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    if (!normalizedEmail || typeof password !== "string" || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail) || typeof password !== "string" || !password) {
+      return res.status(400).json({ message: "Valid email and password are required" });
     }
 
     const userInDb = await UserModel.findOne({ email: normalizedEmail });
@@ -121,15 +182,21 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const { taskName, description, dueDate } = req.body || {};
+    const { taskName, description, dueDate, tzOffset } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
     const trimmedDescription = typeof description === "string" ? description.trim() : "";
 
     if (!trimmedTitle) {
       return res.status(400).json({ message: "Task title is required" });
     }
+    if (trimmedTitle.length > 120) {
+      return res.status(400).json({ message: "Task title must be 120 characters or fewer" });
+    }
     if (!trimmedDescription) {
       return res.status(400).json({ message: "Task description is required" });
+    }
+    if (trimmedDescription.length > 500) {
+      return res.status(400).json({ message: "Task description must be 500 characters or fewer" });
     }
 
     const due = parseRequiredDueDate(dueDate);
@@ -137,6 +204,11 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
       return res.status(400).json({
         message: due.missing ? "Due date is required" : "Invalid due date format",
       });
+    }
+
+    const todayStr = getReferenceTodayStr(tzOffset);
+    if (due.dateStr < todayStr) {
+      return res.status(400).json({ message: "Due date cannot be in the past" });
     }
 
     const newTask = {
@@ -172,15 +244,21 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
       return res.status(400).json({ message: "Invalid user or task ID" });
     }
 
-    const { taskName, description, dueDate } = req.body || {};
+    const { taskName, description, dueDate, tzOffset } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
     const trimmedDescription = typeof description === "string" ? description.trim() : "";
 
     if (!trimmedTitle) {
       return res.status(400).json({ message: "Task title is required" });
     }
+    if (trimmedTitle.length > 120) {
+      return res.status(400).json({ message: "Task title must be 120 characters or fewer" });
+    }
     if (!trimmedDescription) {
       return res.status(400).json({ message: "Task description is required" });
+    }
+    if (trimmedDescription.length > 500) {
+      return res.status(400).json({ message: "Task description must be 500 characters or fewer" });
     }
 
     const due = parseRequiredDueDate(dueDate);
@@ -190,32 +268,54 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
       });
     }
 
-    const userDoc = await UserModel.findOne({
+    // Check task exists, is pending, and check past due date against existing due date
+    const existingDoc = await UserModel.findOne({
       _id: userid,
       email: req.user.email,
       "todos._id": taskid,
     });
 
-    if (!userDoc) {
+    if (!existingDoc) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    const targetTask = userDoc.todos.id(taskid);
-    if (!targetTask) {
+    const existingTask = existingDoc.todos.id(taskid);
+    if (!existingTask) {
       return res.status(404).json({ message: "Task not found" });
     }
-
-    if (targetTask.status === "completed") {
+    if (existingTask.status === "completed") {
       return res.status(400).json({ message: "Completed tasks cannot be edited" });
     }
 
-    targetTask.taskName = trimmedTitle;
-    targetTask.description = trimmedDescription;
-    targetTask.dueDate = due.value;
+    const todayStr = getReferenceTodayStr(tzOffset);
+    const existingDueStr = existingTask.dueDate
+      ? existingTask.dueDate.toISOString().slice(0, 10)
+      : "";
+    if (due.dateStr < todayStr && due.dateStr !== existingDueStr) {
+      return res.status(400).json({ message: "Due date cannot be in the past" });
+    }
 
-    await userDoc.save();
+    const updatedUser = await UserModel.findOneAndUpdate(
+      {
+        _id: userid,
+        email: req.user.email,
+        todos: { $elemMatch: { _id: taskid, status: "pending" } },
+      },
+      {
+        $set: {
+          "todos.$.taskName": trimmedTitle,
+          "todos.$.description": trimmedDescription,
+          "todos.$.dueDate": due.value,
+        },
+      },
+      { new: true, runValidators: true }
+    );
 
-    return res.status(200).json({ message: "task modified", payload: userDoc });
+    if (!updatedUser) {
+      return res.status(400).json({ message: "Completed tasks cannot be edited" });
+    }
+
+    return res.status(200).json({ message: "task modified", payload: updatedUser });
   } catch (err) {
     return res.status(400).json({ message: err.message || "Failed to modify task" });
   }
@@ -229,31 +329,34 @@ userRoute.put("/edit-status/userid/:userid/taskid/:taskid", verifyToken, async (
       return res.status(400).json({ message: "Invalid user or task ID" });
     }
 
-    const userDoc = await UserModel.findOne({
-      _id: userid,
-      email: req.user.email,
-      "todos._id": taskid,
-    });
+    const updatedUser = await UserModel.findOneAndUpdate(
+      {
+        _id: userid,
+        email: req.user.email,
+        todos: { $elemMatch: { _id: taskid, status: "pending" } },
+      },
+      {
+        $set: {
+          "todos.$.status": "completed",
+          "todos.$.completedAt": new Date(),
+        },
+      },
+      { new: true }
+    );
 
-    if (!userDoc) {
+    if (!updatedUser) {
+      const existing = await UserModel.findOne({
+        _id: userid,
+        email: req.user.email,
+        "todos._id": taskid,
+      });
+      if (existing) {
+        return res.status(400).json({ message: "Completed tasks cannot be reopened" });
+      }
       return res.status(404).json({ message: "Task not found" });
     }
 
-    const targetTask = userDoc.todos.id(taskid);
-    if (!targetTask) {
-      return res.status(404).json({ message: "Task not found" });
-    }
-
-    if (targetTask.status === "completed") {
-      return res.status(400).json({ message: "Completed tasks cannot be reopened" });
-    }
-
-    targetTask.status = "completed";
-    targetTask.completedAt = new Date();
-
-    await userDoc.save();
-
-    return res.status(200).json({ message: "task status modified", payload: userDoc });
+    return res.status(200).json({ message: "task status modified", payload: updatedUser });
   } catch (err) {
     return res.status(400).json({ message: err.message || "Failed to update task status" });
   }

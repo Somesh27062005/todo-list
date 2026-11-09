@@ -22,6 +22,7 @@ import {
   extractDateOnlyStr,
   formatTimestamp,
   getDueDateMeta,
+  getLocalDateStr,
   isoToDisplayDate,
   parseDisplayDateToIso,
 } from "../utils/dateUtils";
@@ -119,6 +120,9 @@ function TaskList() {
       }
 
       if (sortBy === "dueDateDesc") {
+        if (a.status !== b.status) {
+          return a.status === "pending" ? -1 : 1;
+        }
         const aDue = extractDateOnlyStr(a.dueDate);
         const bDue = extractDateOnlyStr(b.dueDate);
         if (aDue && bDue) {
@@ -128,9 +132,6 @@ function TaskList() {
           return -1;
         } else if (bDue) {
           return 1;
-        }
-        if (a.status !== b.status) {
-          return a.status === "pending" ? -1 : 1;
         }
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       }
@@ -173,6 +174,7 @@ function TaskList() {
       taskName: modifiedTaskObj.taskName.trim(),
       description: modifiedTaskObj.description.trim(),
       dueDate: isoDueDate,
+      tzOffset: new Date().getTimezoneOffset(),
     };
 
     try {
@@ -450,7 +452,7 @@ function TaskList() {
                       title="Edit task"
                       aria-label="Edit task"
                       onClick={() => openModal(todoObj)}
-                      disabled={isCompleting}
+                      disabled={Boolean(completingTaskId)}
                     >
                       <FaEdit />
                     </button>
@@ -461,7 +463,7 @@ function TaskList() {
                     title="Delete task"
                     aria-label="Delete task"
                     onClick={() => setDeleteTarget(todoObj)}
-                    disabled={isCompleting}
+                    disabled={Boolean(completingTaskId)}
                   >
                     <FaTrash />
                   </button>
@@ -469,7 +471,7 @@ function TaskList() {
               </div>
 
               <h5
-                className={`fw-bold mb-1 ${
+                className={`fw-bold mb-1 text-break ${
                   isCompleted ? "text-decoration-line-through text-muted opacity-75" : ""
                 }`}
               >
@@ -478,7 +480,7 @@ function TaskList() {
 
               {todoObj.description && (
                 <p
-                  className={`small mb-3 ${
+                  className={`small mb-3 text-break ${
                     isCompleted
                       ? "text-decoration-line-through text-muted opacity-75"
                       : "text-secondary"
@@ -555,6 +557,9 @@ function TaskList() {
                     value: 120,
                     message: "Task title must be 120 characters or fewer",
                   },
+                  onChange: () => {
+                    if (editErr) setEditErr("");
+                  },
                 })}
                 className="form-control form-control-custom"
               />
@@ -578,6 +583,9 @@ function TaskList() {
                     value: 500,
                     message: "Description must be 500 characters or fewer",
                   },
+                  onChange: () => {
+                    if (editErr) setEditErr("");
+                  },
                 })}
                 className="form-control form-control-custom"
               ></textarea>
@@ -595,14 +603,25 @@ function TaskList() {
                 control={control}
                 rules={{
                   required: "Due date is required",
-                  validate: (v) =>
-                    Boolean(parseDisplayDateToIso(v)) || "Please enter a valid date (DD/MM/YYYY)",
+                  validate: (v) => {
+                    const iso = parseDisplayDateToIso(v);
+                    if (!iso) return "Please enter a valid date (DD/MM/YYYY)";
+                    const origIso = extractDateOnlyStr(taskBeingEdited?.dueDate);
+                    if (iso < getLocalDateStr() && iso !== origIso) {
+                      return "Due date cannot be in the past";
+                    }
+                    return true;
+                  },
                 }}
                 render={({ field }) => (
                   <DateInput
                     id="edit-task-due"
                     value={field.value}
-                    onChange={field.onChange}
+                    minDate={getLocalDateStr()}
+                    onChange={(val) => {
+                      field.onChange(val);
+                      if (editErr) setEditErr("");
+                    }}
                     onBlur={field.onBlur}
                     disabled={isSavingEdit}
                   />
@@ -652,7 +671,7 @@ function TaskList() {
           <Modal.Title className="fw-bold fs-5 text-danger">Delete Task?</Modal.Title>
         </Modal.Header>
         <Modal.Body className="pt-2">
-          <p className="small text-secondary mb-3">
+          <p className="small text-secondary mb-3 text-break">
             Are you sure you want to delete{" "}
             <strong className="text-dark">&ldquo;{deleteTarget?.taskName}&rdquo;</strong>? This action
             cannot be undone.

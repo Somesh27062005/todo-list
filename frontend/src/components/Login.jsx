@@ -107,6 +107,11 @@ function Login() {
                 disabled={isLoggingIn}
                 {...register("email", {
                   required: "Email is required",
+                  setValueAs: (v) => (typeof v === "string" ? v.trim() : v),
+                  maxLength: {
+                    value: 100,
+                    message: "Email must be 100 characters or fewer",
+                  },
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: "Please enter a valid email address",

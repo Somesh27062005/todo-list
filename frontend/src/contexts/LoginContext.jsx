@@ -16,7 +16,7 @@ function LoginContext({ children }) {
 
   const showToast = useCallback((message, variant = "success") => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    setToasts((prev) => [...prev, { id, message, variant }]);
+    setToasts((prev) => [...prev.slice(-2), { id, message, variant }]);
   }, []);
 
   const dismissToast = useCallback((id) => {

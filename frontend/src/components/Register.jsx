@@ -11,7 +11,7 @@ function Register() {
   const {
     register,
     handleSubmit,
-    watch,
+    trigger,
     formState: { errors },
   } = useForm();
 
@@ -22,8 +22,6 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [slowServerHint, setSlowServerHint] = useState(false);
   const navigate = useNavigate();
-
-  const passwordValue = watch("password", "");
 
   useEffect(() => {
     if (!isAuthChecking && loginStatus === true) {
@@ -103,8 +101,13 @@ function Register() {
                 disabled={isRegistering}
                 {...register("name", {
                   required: "Name is required",
-                  validate: (value) =>
-                    value.trim().length >= 2 || "Name must be at least 2 characters",
+                  validate: (value) => {
+                    const trimmed = value.trim();
+                    if (trimmed.length < 2) return "Name must be at least 2 characters";
+                    if (trimmed.length > 50) return "Name must be 50 characters or fewer";
+                    if (!/\p{L}/u.test(trimmed)) return "Name must contain at least one letter";
+                    return true;
+                  },
                   onChange: () => {
                     if (registerErr) setRegisterErr("");
                   },
@@ -128,6 +131,11 @@ function Register() {
                 disabled={isRegistering}
                 {...register("email", {
                   required: "Email is required",
+                  setValueAs: (v) => (typeof v === "string" ? v.trim() : v),
+                  maxLength: {
+                    value: 100,
+                    message: "Email must be 100 characters or fewer",
+                  },
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: "Please enter a valid email address",
@@ -160,8 +168,18 @@ function Register() {
                       value: 6,
                       message: "Password must be at least 6 characters",
                     },
+                    maxLength: {
+                      value: 72,
+                      message: "Password must be 72 characters or fewer",
+                    },
+                    validate: (value) =>
+                      (value.trim().length >= 6 && value === value.trim()) ||
+                      "Password cannot be blank or start/end with spaces",
                     onChange: () => {
                       if (registerErr) setRegisterErr("");
+                      if (errors.confirmPassword) {
+                        setTimeout(() => trigger("confirmPassword"), 0);
+                      }
                     },
                   })}
                   className="form-control form-control-custom password-input-with-toggle"
@@ -195,7 +213,8 @@ function Register() {
                   disabled={isRegistering}
                   {...register("confirmPassword", {
                     required: "Please confirm your password",
-                    validate: (value) => value === passwordValue || "Passwords do not match",
+                    validate: (value, formValues) =>
+                      value === formValues.password || "Passwords do not match",
                     onChange: () => {
                       if (registerErr) setRegisterErr("");
                     },

@@ -46,7 +46,7 @@ function UserProfile() {
       {/* User Welcome Banner */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-2">
         <div>
-          <h2 className="fw-bold mb-1">Welcome, {currentUser?.name || "there"}</h2>
+          <h2 className="fw-bold mb-1 text-break">Welcome, {currentUser?.name || "there"}</h2>
           <p className="text-muted small m-0">
             {stats.total === 0
               ? "Ready to get organized? Add your first task below."

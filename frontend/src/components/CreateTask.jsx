@@ -6,7 +6,7 @@ import { FaPlusCircle } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
 import DateInput from "./DateInput";
-import { parseDisplayDateToIso } from "../utils/dateUtils";
+import { getLocalDateStr, parseDisplayDateToIso } from "../utils/dateUtils";
 
 const DEFAULT_TASK_VALUES = {
   taskName: "",
@@ -44,6 +44,7 @@ function CreateTask() {
       taskName: newTask.taskName.trim(),
       description: newTask.description.trim(),
       dueDate: isoDueDate,
+      tzOffset: new Date().getTimezoneOffset(),
     };
 
     try {
@@ -145,13 +146,18 @@ function CreateTask() {
             control={control}
             rules={{
               required: "Due date is required",
-              validate: (value) =>
-                Boolean(parseDisplayDateToIso(value)) || "Please enter a valid date (DD/MM/YYYY)",
+              validate: (value) => {
+                const iso = parseDisplayDateToIso(value);
+                if (!iso) return "Please enter a valid date (DD/MM/YYYY)";
+                if (iso < getLocalDateStr()) return "Due date cannot be in the past";
+                return true;
+              },
             }}
             render={({ field }) => (
               <DateInput
                 id="create-task-due"
                 value={field.value}
+                minDate={getLocalDateStr()}
                 onChange={(val) => {
                   field.onChange(val);
                   if (createErr) setCreateErr("");
