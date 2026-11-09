@@ -5,13 +5,10 @@ import { Spinner } from "react-bootstrap";
 import { FaPlusCircle } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
-import { TASK_CATEGORIES, PRIORITY_OPTIONS } from "../constants/tasks";
 
 const DEFAULT_TASK_VALUES = {
   taskName: "",
   description: "",
-  priority: "medium",
-  category: "General",
   dueDate: "",
 };
 
@@ -26,14 +23,10 @@ function CreateTask() {
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: DEFAULT_TASK_VALUES,
   });
-
-  const selectedPriority = watch("priority", "medium");
 
   const onSubmitNewTask = async (newTask) => {
     if (!currentUser?._id || isCreating) return;
@@ -44,8 +37,6 @@ function CreateTask() {
     const payload = {
       taskName: newTask.taskName.trim(),
       description: newTask.description?.trim() || "",
-      priority: newTask.priority || "medium",
-      category: newTask.category || "General",
       dueDate: newTask.dueDate || null,
     };
 
@@ -76,7 +67,7 @@ function CreateTask() {
       <h4 className="fw-bold mb-1 d-flex align-items-center gap-2">
         <FaPlusCircle className="text-primary" /> Create New Task
       </h4>
-      <p className="text-muted small mb-4">Organize your work with priority, category, and due date</p>
+      <p className="text-muted small mb-4">Add a task with optional notes and due date</p>
 
       {createErr && (
         <div className="alert alert-danger py-2 small" role="alert">
@@ -134,57 +125,17 @@ function CreateTask() {
           )}
         </div>
 
-        <div className="mb-3">
-          <label className="form-label fw-semibold text-secondary small d-block">Priority</label>
-          <div className="d-flex gap-2">
-            {PRIORITY_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                disabled={isCreating}
-                onClick={() => setValue("priority", option.value)}
-                className={`priority-pill-btn ${
-                  selectedPriority === option.value ? `active-${option.value}` : ""
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <input type="hidden" {...register("priority")} />
-        </div>
-
-        <div className="row g-2 mb-4">
-          <div className="col-sm-6">
-            <label htmlFor="create-task-category" className="form-label fw-semibold text-secondary small">
-              Category
-            </label>
-            <select
-              id="create-task-category"
-              disabled={isCreating}
-              {...register("category")}
-              className="form-select form-select-custom"
-            >
-              {TASK_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-sm-6">
-            <label htmlFor="create-task-due" className="form-label fw-semibold text-secondary small">
-              Due Date <span className="text-muted fw-normal">(optional)</span>
-            </label>
-            <input
-              id="create-task-due"
-              type="date"
-              disabled={isCreating}
-              {...register("dueDate")}
-              className="form-control form-control-custom"
-            />
-          </div>
+        <div className="mb-4">
+          <label htmlFor="create-task-due" className="form-label fw-semibold text-secondary small">
+            Due Date <span className="text-muted fw-normal">(optional)</span>
+          </label>
+          <input
+            id="create-task-due"
+            type="date"
+            disabled={isCreating}
+            {...register("dueDate")}
+            className="form-control form-control-custom"
+          />
         </div>
 
         <button

@@ -24,31 +24,24 @@ Content-Type: application/json
 {
     "taskName": "Prepare presentation",
     "description": "Finalize slides for sprint demo",
-    "priority": "high",
-    "category": "Work",
     "dueDate": "2026-11-15"
 }
 
-### Edit task
+### Edit pending task
 PUT http://localhost:8000/user-api/edit-todo/userid/6931407ee6006acb9bf68e9b/taskid/69314a5cabb4ebc4319f539c
 Content-Type: application/json
 
 {
     "taskName": "Prepare presentation",
     "description": "Finalize slides and demo notes",
-    "priority": "medium",
-    "category": "Work",
-    "dueDate": "2026-11-16",
-    "status": "pending"
+    "dueDate": "2026-11-16"
 }
 
-### Toggle / set task status
+### Mark task as completed
 PUT http://localhost:8000/user-api/edit-status/userid/6931407ee6006acb9bf68e9b/taskid/69314a5cabb4ebc4319f539c
 Content-Type: application/json
 
-{
-    "status": "completed"
-}
+{}
 
 ### Delete task
 PUT http://localhost:8000/user-api/delete-todo/userid/69315aeffd9d1d7891356902/taskid/69315b315a1aa79b31def256

@@ -107,18 +107,6 @@ body {
   border-color: #cbd5e1;
 }
 
-.task-priority-high {
-  border-left-color: #ef4444;
-}
-
-.task-priority-medium {
-  border-left-color: #f59e0b;
-}
-
-.task-priority-low {
-  border-left-color: #0ea5e9;
-}
-
 /* Inputs & Form Controls */
 .form-control-custom,
 .form-select-custom {
@@ -184,43 +172,6 @@ body {
   opacity: 0.9;
 }
 
-/* Priority selector pills */
-.priority-pill-btn {
-  flex: 1;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: var(--text-muted);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.priority-pill-btn:hover:not(:disabled) {
-  border-color: #94a3b8;
-  background: #f1f5f9;
-}
-
-.priority-pill-btn.active-low {
-  background-color: #e0f2fe;
-  border-color: #0ea5e9;
-  color: #0369a1;
-}
-
-.priority-pill-btn.active-medium {
-  background-color: #fef3c7;
-  border-color: #f59e0b;
-  color: #b45309;
-}
-
-.priority-pill-btn.active-high {
-  background-color: #fee2e2;
-  border-color: #ef4444;
-  color: #b91c1c;
-}
-
 /* Filter pills */
 .filter-tab-btn {
   border: 1px solid #e2e8f0;
@@ -245,7 +196,7 @@ body {
   border-color: var(--primary-color);
 }
 
-/* Status & Attribute Badges */
+/* Status & Due Date Badges */
 .badge-pending {
   background-color: #fef3c7;
   color: #b45309;
@@ -262,42 +213,6 @@ body {
   padding: 0.3rem 0.7rem;
   border-radius: 2rem;
   font-size: 0.76rem;
-}
-
-.badge-priority-high {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 2rem;
-  font-size: 0.74rem;
-}
-
-.badge-priority-medium {
-  background-color: #fef3c7;
-  color: #b45309;
-  font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 2rem;
-  font-size: 0.74rem;
-}
-
-.badge-priority-low {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 2rem;
-  font-size: 0.74rem;
-}
-
-.badge-category {
-  background-color: #eef2ff;
-  color: #4338ca;
-  font-weight: 600;
-  padding: 0.3rem 0.65rem;
-  border-radius: 2rem;
-  font-size: 0.74rem;
 }
 
 .badge-due-overdue {

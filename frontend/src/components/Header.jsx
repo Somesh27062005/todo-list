@@ -10,7 +10,8 @@ function Header() {
   const location = useLocation();
 
   const isLoginRoute = location.pathname === "/" || location.pathname === "/login";
-  const userInitial = currentUser?.name?.trim()?.charAt(0)?.toUpperCase() || "U";
+  const displayName = currentUser?.name?.trim() || "User";
+  const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="app-header mb-4">
@@ -50,19 +51,15 @@ function Header() {
           ) : (
             <li className="nav-item d-flex align-items-center gap-2 gap-md-3">
               <div className="d-flex align-items-center gap-2">
-                <span className="user-avatar-circle" title={currentUser?.name || currentUser?.email}>
+                <span className="user-avatar-circle" title={displayName}>
                   {userInitial}
                 </span>
-                {currentUser?.name && (
-                  <span className="fw-semibold text-dark small d-none d-sm-inline">
-                    {currentUser.name}
-                  </span>
-                )}
-                {currentUser?.email && (
-                  <span className="badge bg-light text-secondary border px-2 py-1 rounded-pill font-monospace d-none d-md-inline">
-                    {currentUser.email}
-                  </span>
-                )}
+                <span
+                  className="fw-semibold text-dark small text-truncate"
+                  style={{ maxWidth: "150px" }}
+                >
+                  {displayName}
+                </span>
               </div>
               <button
                 type="button"

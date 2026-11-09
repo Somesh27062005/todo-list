@@ -6,7 +6,6 @@ import {
   FaEdit,
   FaTrash,
   FaCheck,
-  FaUndo,
   FaTasks,
   FaInbox,
   FaClock,
@@ -17,10 +16,7 @@ import {
 } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
-import { TASK_CATEGORIES, PRIORITY_OPTIONS } from "../constants/tasks";
 import { extractDateOnlyStr, formatTimestamp, getDueDateMeta } from "../utils/dateUtils";
-
-const PRIORITY_WEIGHT = { high: 3, medium: 2, low: 1 };
 
 function TaskList() {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
@@ -37,23 +33,19 @@ function TaskList() {
     defaultValues: {
       taskName: "",
       description: "",
-      priority: "medium",
-      category: "General",
       dueDate: "",
     },
   });
 
-  const editPriority = watch("priority", "medium");
+  const editDueDateValue = watch("dueDate", "");
 
   // Filters & sorting state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
   // Action loading & modal states
-  const [togglingTaskId, setTogglingTaskId] = useState(null);
+  const [completingTaskId, setCompletingTaskId] = useState(null);
   const [modalState, setModalState] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -76,25 +68,11 @@ function TaskList() {
     };
   }, [todos]);
 
-  const availableCategories = useMemo(() => {
-    const set = new Set(TASK_CATEGORIES);
-    todos.forEach((t) => {
-      if (t.category) set.add(t.category);
-    });
-    return Array.from(set);
-  }, [todos]);
-
-  const hasActiveFilters =
-    searchQuery.trim() !== "" ||
-    statusFilter !== "all" ||
-    priorityFilter !== "all" ||
-    categoryFilter !== "all";
+  const hasActiveFilters = searchQuery.trim() !== "" || statusFilter !== "all";
 
   const resetFilters = () => {
     setSearchQuery("");
     setStatusFilter("all");
-    setPriorityFilter("all");
-    setCategoryFilter("all");
   };
 
   const filteredAndSortedTodos = useMemo(() => {
@@ -103,17 +81,10 @@ function TaskList() {
     const filtered = todos.filter((todo) => {
       if (statusFilter !== "all" && todo.status !== statusFilter) return false;
 
-      const taskPriority = todo.priority || "medium";
-      if (priorityFilter !== "all" && taskPriority !== priorityFilter) return false;
-
-      const taskCategory = todo.category || "General";
-      if (categoryFilter !== "all" && taskCategory !== categoryFilter) return false;
-
       if (query) {
         const titleMatch = todo.taskName?.toLowerCase().includes(query);
         const descMatch = todo.description?.toLowerCase().includes(query);
-        const catMatch = taskCategory.toLowerCase().includes(query);
-        if (!titleMatch && !descMatch && !catMatch) return false;
+        if (!titleMatch && !descMatch) return false;
       }
 
       return true;
@@ -123,35 +94,54 @@ function TaskList() {
       if (sortBy === "oldest") {
         return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
       }
-      if (sortBy === "priority") {
-        const diff =
-          (PRIORITY_WEIGHT[b.priority || "medium"] || 2) -
-          (PRIORITY_WEIGHT[a.priority || "medium"] || 2);
-        if (diff !== 0) return diff;
-        if (a.status !== b.status) return a.status === "pending" ? -1 : 1;
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-      }
-      if (sortBy === "dueDate") {
+
+      if (sortBy === "dueDateAsc") {
+        // Put pending tasks before completed tasks when sorting by soonest due date
+        if (a.status !== b.status) {
+          return a.status === "pending" ? -1 : 1;
+        }
         const aDue = extractDateOnlyStr(a.dueDate);
         const bDue = extractDateOnlyStr(b.dueDate);
-        if (aDue && bDue) return aDue.localeCompare(bDue);
-        if (aDue) return -1;
-        if (bDue) return 1;
+        if (aDue && bDue) {
+          const cmp = aDue.localeCompare(bDue);
+          if (cmp !== 0) return cmp;
+        } else if (aDue) {
+          return -1;
+        } else if (bDue) {
+          return 1;
+        }
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       }
+
+      if (sortBy === "dueDateDesc") {
+        const aDue = extractDateOnlyStr(a.dueDate);
+        const bDue = extractDateOnlyStr(b.dueDate);
+        if (aDue && bDue) {
+          const cmp = bDue.localeCompare(aDue);
+          if (cmp !== 0) return cmp;
+        } else if (aDue) {
+          return -1;
+        } else if (bDue) {
+          return 1;
+        }
+        if (a.status !== b.status) {
+          return a.status === "pending" ? -1 : 1;
+        }
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      }
+
       // default: newest first
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
-  }, [todos, searchQuery, statusFilter, priorityFilter, categoryFilter, sortBy]);
+  }, [todos, searchQuery, statusFilter, sortBy]);
 
   const openModal = (taskObj) => {
+    if (taskObj.status === "completed") return;
     setEditErr("");
     setTaskBeingEdited(taskObj);
     reset({
       taskName: taskObj.taskName || "",
       description: taskObj.description || "",
-      priority: taskObj.priority || "medium",
-      category: taskObj.category || "General",
       dueDate: extractDateOnlyStr(taskObj.dueDate),
     });
     setModalState(true);
@@ -166,6 +156,7 @@ function TaskList() {
 
   const saveModifiedTask = async (modifiedTaskObj) => {
     if (!currentUser?._id || !taskBeingEdited?._id || isSavingEdit) return;
+    if (taskBeingEdited.status === "completed") return;
 
     setEditErr("");
     setIsSavingEdit(true);
@@ -173,8 +164,6 @@ function TaskList() {
     const payload = {
       taskName: modifiedTaskObj.taskName.trim(),
       description: modifiedTaskObj.description?.trim() || "",
-      priority: modifiedTaskObj.priority || "medium",
-      category: modifiedTaskObj.category || "General",
       dueDate: modifiedTaskObj.dueDate || null,
     };
 
@@ -203,33 +192,29 @@ function TaskList() {
     }
   };
 
-  const toggleTaskStatus = async (todoObj) => {
-    if (!currentUser?._id || togglingTaskId) return;
+  const markTaskCompleted = async (todoObj) => {
+    if (!currentUser?._id || completingTaskId || todoObj.status === "completed") return;
 
-    const nextStatus = todoObj.status === "completed" ? "pending" : "completed";
-    setTogglingTaskId(todoObj._id);
+    setCompletingTaskId(todoObj._id);
 
     try {
       const res = await axios.put(
         `${API_BASE_URL}/user-api/edit-status/userid/${currentUser._id}/taskid/${todoObj._id}`,
-        { status: nextStatus },
+        null,
         { withCredentials: true }
       );
       if (res.status === 200 && res.data?.payload) {
         setCurrentUser(res.data.payload);
-        showToast(
-          nextStatus === "completed" ? "Task marked as completed!" : "Task reopened as pending.",
-          nextStatus === "completed" ? "success" : "info"
-        );
+        showToast("Task marked as completed!", "success");
       }
     } catch (err) {
       if (err.response?.status === 401) {
         handleSessionExpired();
       } else {
-        showToast(err.response?.data?.message || "Failed to update task status.", "danger");
+        showToast(err.response?.data?.message || "Failed to complete task.", "danger");
       }
     } finally {
-      setTogglingTaskId(null);
+      setCompletingTaskId(null);
     }
   };
 
@@ -287,18 +272,6 @@ function TaskList() {
     }
   };
 
-  const getPriorityBadgeClass = (priority) => {
-    if (priority === "high") return "badge-priority-high";
-    if (priority === "low") return "badge-priority-low";
-    return "badge-priority-medium";
-  };
-
-  const getPriorityLabel = (priority) => {
-    if (priority === "high") return "High";
-    if (priority === "low") return "Low";
-    return "Medium";
-  };
-
   return (
     <div className="custom-card">
       {/* Header Row */}
@@ -324,7 +297,7 @@ function TaskList() {
         )}
       </div>
 
-      {/* Search, Filter & Sort Controls (only show when user has at least 1 task) */}
+      {/* Search, Filter & Sort Controls */}
       {todos.length > 0 && (
         <div className="mb-4 pb-3 border-bottom">
           {/* Status Filter Tabs */}
@@ -352,9 +325,9 @@ function TaskList() {
             </button>
           </div>
 
-          {/* Search + Dropdown Filters */}
+          {/* Search + Sort */}
           <div className="row g-2">
-            <div className="col-12 col-md-5">
+            <div className="col-12 col-sm-7">
               <div className="input-group input-group-sm">
                 <span className="input-group-text bg-light border-end-0 text-muted">
                   <FaSearch />
@@ -380,47 +353,17 @@ function TaskList() {
               </div>
             </div>
 
-            <div className="col-4 col-md-2">
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="form-select form-select-sm"
-                aria-label="Filter by priority"
-              >
-                <option value="all">All Priorities</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-
-            <div className="col-4 col-md-2">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="form-select form-select-sm"
-                aria-label="Filter by category"
-              >
-                <option value="all">All Categories</option>
-                {availableCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-4 col-md-3">
+            <div className="col-12 col-sm-5">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="form-select form-select-sm"
                 aria-label="Sort tasks"
               >
-                <option value="newest">Sort: Newest</option>
-                <option value="oldest">Sort: Oldest</option>
-                <option value="priority">Sort: Priority</option>
-                <option value="dueDate">Sort: Due Date</option>
+                <option value="newest">Sort: Newest First</option>
+                <option value="oldest">Sort: Oldest First</option>
+                <option value="dueDateAsc">Sort: Due Date (Soonest)</option>
+                <option value="dueDateDesc">Sort: Due Date (Latest)</option>
               </select>
             </div>
           </div>
@@ -451,21 +394,17 @@ function TaskList() {
         </div>
       ) : (
         filteredAndSortedTodos.map((todoObj) => {
-          const priority = todoObj.priority || "medium";
-          const category = todoObj.category || "General";
           const dueMeta = getDueDateMeta(todoObj.dueDate, todoObj.status);
-          const isToggling = togglingTaskId === todoObj._id;
+          const isCompleting = completingTaskId === todoObj._id;
           const isCompleted = todoObj.status === "completed";
 
           return (
             <div
-              className={`task-item-card ${
-                isCompleted ? "task-completed-card" : `task-priority-${priority}`
-              }`}
+              className={`task-item-card ${isCompleted ? "task-completed-card" : ""}`}
               key={todoObj._id}
             >
               <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
-                <div className="d-flex flex-wrap align-items-center gap-1">
+                <div className="d-flex flex-wrap align-items-center gap-2">
                   <span
                     className={
                       isCompleted
@@ -482,12 +421,6 @@ function TaskList() {
                     )}
                   </span>
 
-                  <span className={getPriorityBadgeClass(priority)}>
-                    {getPriorityLabel(priority)} Priority
-                  </span>
-
-                  <span className="badge-category">{category}</span>
-
                   {dueMeta && (
                     <span className={`${dueMeta.className} d-inline-flex align-items-center gap-1`}>
                       <FaCalendarAlt />
@@ -497,23 +430,25 @@ function TaskList() {
                 </div>
 
                 <div className="d-flex gap-1 flex-shrink-0">
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary border-0 rounded-circle"
-                    title="Edit task"
-                    aria-label="Edit task"
-                    onClick={() => openModal(todoObj)}
-                    disabled={isToggling}
-                  >
-                    <FaEdit />
-                  </button>
+                  {!isCompleted && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary border-0 rounded-circle"
+                      title="Edit task"
+                      aria-label="Edit task"
+                      onClick={() => openModal(todoObj)}
+                      disabled={isCompleting}
+                    >
+                      <FaEdit />
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn-sm btn-outline-danger border-0 rounded-circle"
                     title="Delete task"
                     aria-label="Delete task"
                     onClick={() => setDeleteTarget(todoObj)}
-                    disabled={isToggling}
+                    disabled={isCompleting}
                   >
                     <FaTrash />
                   </button>
@@ -553,31 +488,26 @@ function TaskList() {
                     ` • Completed ${formatTimestamp(todoObj.completedAt)}`}
                 </small>
 
-                <button
-                  type="button"
-                  disabled={Boolean(togglingTaskId)}
-                  className={`btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill px-3 ${
-                    isCompleted ? "btn-outline-secondary" : "btn-success"
-                  }`}
-                  onClick={() => toggleTaskStatus(todoObj)}
-                >
-                  {isToggling ? (
-                    <>
-                      <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-                      <span>Updating...</span>
-                    </>
-                  ) : isCompleted ? (
-                    <>
-                      <FaUndo />
-                      <span>Reopen</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaCheck />
-                      <span>Mark Done</span>
-                    </>
-                  )}
-                </button>
+                {!isCompleted && (
+                  <button
+                    type="button"
+                    disabled={Boolean(completingTaskId)}
+                    className="btn btn-sm btn-success d-inline-flex align-items-center gap-1 rounded-pill px-3"
+                    onClick={() => markTaskCompleted(todoObj)}
+                  >
+                    {isCompleting ? (
+                      <>
+                        <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                        <span>Completing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck />
+                        <span>Mark as completed</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -641,57 +571,29 @@ function TaskList() {
               )}
             </div>
 
-            <div className="mb-3">
-              <label className="form-label fw-semibold text-secondary small d-block">Priority</label>
-              <div className="d-flex gap-2">
-                {PRIORITY_OPTIONS.map((option) => (
+            <div className="mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <label htmlFor="edit-task-due" className="form-label fw-semibold text-secondary small m-0">
+                  Due Date <span className="text-muted fw-normal">(optional)</span>
+                </label>
+                {editDueDateValue && (
                   <button
-                    key={option.value}
                     type="button"
+                    className="btn btn-link btn-sm p-0 text-decoration-none small"
+                    onClick={() => setValue("dueDate", "")}
                     disabled={isSavingEdit}
-                    onClick={() => setValue("priority", option.value)}
-                    className={`priority-pill-btn ${
-                      editPriority === option.value ? `active-${option.value}` : ""
-                    }`}
                   >
-                    {option.label}
+                    Clear date
                   </button>
-                ))}
+                )}
               </div>
-              <input type="hidden" {...register("priority")} />
-            </div>
-
-            <div className="row g-2 mb-4">
-              <div className="col-sm-6">
-                <label htmlFor="edit-task-category" className="form-label fw-semibold text-secondary small">
-                  Category
-                </label>
-                <select
-                  id="edit-task-category"
-                  disabled={isSavingEdit}
-                  {...register("category")}
-                  className="form-select form-select-custom"
-                >
-                  {availableCategories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-sm-6">
-                <label htmlFor="edit-task-due" className="form-label fw-semibold text-secondary small">
-                  Due Date
-                </label>
-                <input
-                  id="edit-task-due"
-                  type="date"
-                  disabled={isSavingEdit}
-                  {...register("dueDate")}
-                  className="form-control form-control-custom"
-                />
-              </div>
+              <input
+                id="edit-task-due"
+                type="date"
+                disabled={isSavingEdit}
+                {...register("dueDate")}
+                className="form-control form-control-custom"
+              />
             </div>
 
             <div className="d-flex justify-content-end gap-2">

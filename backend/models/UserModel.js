@@ -16,16 +16,6 @@ const todoSchema = new Schema({
     enum: ["pending", "completed"],
     default: "pending",
   },
-  priority: {
-    type: String,
-    enum: ["low", "medium", "high"],
-    default: "medium",
-  },
-  category: {
-    type: String,
-    trim: true,
-    default: "General",
-  },
   dueDate: {
     type: Date,
     default: null,

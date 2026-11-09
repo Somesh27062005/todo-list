@@ -15,15 +15,7 @@ const baseCookieOptions = {
   sameSite: isProduction ? "none" : "lax",
 };
 
-const VALID_PRIORITIES = new Set(["low", "medium", "high"]);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function normalizePriority(priority) {
-  if (typeof priority === "string" && VALID_PRIORITIES.has(priority.toLowerCase())) {
-    return priority.toLowerCase();
-  }
-  return "medium";
-}
 
 function parseDueDate(dueDateValue) {
   if (dueDateValue === undefined || dueDateValue === null || dueDateValue === "") {
@@ -129,7 +121,7 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const { taskName, description, priority, category, dueDate } = req.body || {};
+    const { taskName, description, dueDate } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
 
     if (!trimmedTitle) {
@@ -145,8 +137,6 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
       taskName: trimmedTitle,
       description: typeof description === "string" ? description.trim() : "",
       status: "pending",
-      priority: normalizePriority(priority),
-      category: typeof category === "string" && category.trim() ? category.trim() : "General",
       dueDate: due.value,
       createdAt: new Date(),
       completedAt: null,
@@ -168,7 +158,7 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
   }
 });
 
-// Route to edit task
+// Route to edit a pending task (completed tasks cannot be edited)
 userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (req, res) => {
   try {
     const { userid, taskid } = req.params;
@@ -176,7 +166,7 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
       return res.status(400).json({ message: "Invalid user or task ID" });
     }
 
-    const { taskName, description, priority, category, dueDate, status } = req.body || {};
+    const { taskName, description, dueDate } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
 
     if (!trimmedTitle) {
@@ -188,46 +178,40 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
       return res.status(400).json({ message: "Invalid due date format" });
     }
 
-    const updateFields = {
-      "todos.$.taskName": trimmedTitle,
-      "todos.$.description": typeof description === "string" ? description.trim() : "",
-    };
+    const userDoc = await UserModel.findOne({
+      _id: userid,
+      email: req.user.email,
+      "todos._id": taskid,
+    });
 
-    if (priority !== undefined) {
-      updateFields["todos.$.priority"] = normalizePriority(priority);
-    }
-    if (category !== undefined) {
-      updateFields["todos.$.category"] =
-        typeof category === "string" && category.trim() ? category.trim() : "General";
-    }
-    if (dueDate !== undefined) {
-      updateFields["todos.$.dueDate"] = due.value;
-    }
-    if (status === "completed") {
-      updateFields["todos.$.status"] = "completed";
-      updateFields["todos.$.completedAt"] = new Date();
-    } else if (status === "pending") {
-      updateFields["todos.$.status"] = "pending";
-      updateFields["todos.$.completedAt"] = null;
-    }
-
-    const userWithModifiedTask = await UserModel.findOneAndUpdate(
-      { _id: userid, email: req.user.email, "todos._id": taskid },
-      { $set: updateFields },
-      { new: true, runValidators: true }
-    );
-
-    if (!userWithModifiedTask) {
+    if (!userDoc) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    return res.status(200).json({ message: "task modified", payload: userWithModifiedTask });
+    const targetTask = userDoc.todos.id(taskid);
+    if (!targetTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (targetTask.status === "completed") {
+      return res.status(400).json({ message: "Completed tasks cannot be edited" });
+    }
+
+    targetTask.taskName = trimmedTitle;
+    targetTask.description = typeof description === "string" ? description.trim() : "";
+    if (dueDate !== undefined) {
+      targetTask.dueDate = due.value;
+    }
+
+    await userDoc.save();
+
+    return res.status(200).json({ message: "task modified", payload: userDoc });
   } catch (err) {
     return res.status(400).json({ message: err.message || "Failed to modify task" });
   }
 });
 
-// Route to toggle or set task status (pending <-> completed)
+// Route to mark a pending task as completed (cannot be reopened once completed)
 userRoute.put("/edit-status/userid/:userid/taskid/:taskid", verifyToken, async (req, res) => {
   try {
     const { userid, taskid } = req.params;
@@ -250,16 +234,12 @@ userRoute.put("/edit-status/userid/:userid/taskid/:taskid", verifyToken, async (
       return res.status(404).json({ message: "Task not found" });
     }
 
-    const requestedStatus = req.body?.status;
-    let nextStatus;
-    if (requestedStatus === "completed" || requestedStatus === "pending") {
-      nextStatus = requestedStatus;
-    } else {
-      nextStatus = targetTask.status === "completed" ? "pending" : "completed";
+    if (targetTask.status === "completed") {
+      return res.status(400).json({ message: "Completed tasks cannot be reopened" });
     }
 
-    targetTask.status = nextStatus;
-    targetTask.completedAt = nextStatus === "completed" ? new Date() : null;
+    targetTask.status = "completed";
+    targetTask.completedAt = new Date();
 
     await userDoc.save();
 

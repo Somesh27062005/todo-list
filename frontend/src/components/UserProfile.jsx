@@ -23,12 +23,9 @@ function UserProfile() {
     const completed = todos.filter((t) => t.status === "completed").length;
     const pending = total - completed;
     const overdue = todos.filter((t) => isTaskOverdue(t)).length;
-    const highPriorityPending = todos.filter(
-      (t) => t.status === "pending" && t.priority === "high"
-    ).length;
     const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-    return { total, completed, pending, overdue, highPriorityPending, completionRate };
+    return { total, completed, pending, overdue, completionRate };
   }, [currentUser]);
 
   if (isAuthChecking || !currentUser) {
@@ -55,11 +52,7 @@ function UserProfile() {
               ? "Ready to get organized? Add your first task below."
               : stats.pending === 0
               ? "All caught up! Every task is completed."
-              : `You have ${stats.pending} pending ${stats.pending === 1 ? "task" : "tasks"}${
-                  stats.highPriorityPending > 0
-                    ? ` (${stats.highPriorityPending} high priority)`
-                    : ""
-                }.`}
+              : `You have ${stats.pending} pending ${stats.pending === 1 ? "task" : "tasks"}.`}
           </p>
         </div>
 
