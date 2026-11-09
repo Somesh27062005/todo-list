@@ -29,11 +29,7 @@ import {
   parseDisplayDateToIso,
 } from "../utils/dateUtils";
 
-function TaskList({
-  statusFilter: controlledFilter,
-  onStatusFilterChange,
-  onRequestCreate,
-}) {
+function TaskList({ onRequestCreate }) {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
     useContext(loginContextObj);
 
@@ -53,9 +49,7 @@ function TaskList({
 
   // Filters & sorting state
   const [searchQuery, setSearchQuery] = useState("");
-  const [internalFilter, setInternalFilter] = useState("all");
-  const statusFilter = controlledFilter ?? internalFilter;
-  const setStatusFilter = onStatusFilterChange ?? setInternalFilter;
+  const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("dueDateAsc");
 
   // Action loading & modal states
@@ -299,12 +293,12 @@ function TaskList({
   return (
     <div className="custom-card">
       {/* Header Row */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
         <div className="d-flex align-items-center gap-2">
           <h4 className="fw-bold m-0 d-flex align-items-center gap-2">
             <FaTasks className="text-primary" /> My Tasks
           </h4>
-          <span className="badge bg-primary rounded-pill px-3 py-1">
+          <span className="badge bg-primary rounded-pill px-3 py-1 d-none d-sm-inline-block">
             {counts.all} {counts.all === 1 ? "Task" : "Tasks"}
           </span>
         </div>
@@ -312,20 +306,21 @@ function TaskList({
         {counts.completed > 0 && (
           <button
             type="button"
-            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-pill px-3"
+            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-pill px-2 px-sm-3 flex-shrink-0"
             onClick={() => setClearCompletedModal(true)}
           >
             <FaBroom />
-            <span>Clear Completed ({counts.completed})</span>
+            <span className="d-none d-sm-inline">Clear Completed ({counts.completed})</span>
+            <span className="d-sm-none">Clear ({counts.completed})</span>
           </button>
         )}
       </div>
 
       {/* Search, Filter & Sort Controls */}
       {todos.length > 0 && (
-        <div className="mb-4 pb-3 border-bottom">
+        <div className="mb-3 mb-sm-4 pb-2 pb-sm-3 border-bottom">
           {/* Status Filter Tabs */}
-          <div className="filter-tabs-row mb-3">
+          <div className="filter-tabs-row mb-2 mb-sm-3">
             <button
               type="button"
               className={`filter-tab-btn ${statusFilter === "all" ? "active" : ""}`}
@@ -357,8 +352,8 @@ function TaskList({
           </div>
 
           {/* Search + Sort */}
-          <div className="row g-2">
-            <div className="col-12 col-sm-7">
+          <div className="row g-2 search-sort-row">
+            <div className="col-12 col-sm-7 search-sort-search">
               <div className="input-group input-group-sm">
                 <span className="input-group-text bg-light border-end-0 text-muted">
                   <FaSearch />
@@ -384,7 +379,7 @@ function TaskList({
               </div>
             </div>
 
-            <div className="col-12 col-sm-5">
+            <div className="col-12 col-sm-5 search-sort-select">
               <div className="input-group input-group-sm">
                 <span className="input-group-text bg-light border-end-0 text-muted" title="Sort by">
                   <FaSortAmountDown />

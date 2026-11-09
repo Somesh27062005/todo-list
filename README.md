@@ -43,7 +43,7 @@
 - 📋 **Full Task Management (CRUD)**: Create, view, edit pending tasks, mark tasks as completed, delete (with confirmation), and bulk-clear completed tasks.
 - 📅 **Due Dates & Overdue Indicators**: Required due dates on tasks with automatic `Overdue`, `Due Today`, and `Due Tomorrow` badges.
 - 🔍 **Search, Filter & Sort**: Real-time search, status tabs (`All`, `Pending`, `Overdue`, `Completed`), and sorting by `Recently Added`, `Oldest Added`, `Earliest Due Date`, or `Latest Due Date`.
-- 📊 **Dashboard Analytics**: Summary cards for total, pending, completed, and overdue tasks with an overall completion progress bar.
+- 📱 **Responsive Desktop & Mobile UI**: Two-column desktop workspace with a compact mobile layout, floating `+` add-task button, and modal task creation.
 - ⏳ **Responsive Loading & Toast Feedback**: Loading spinners across auth and task actions (including cold-start server hints) plus real-time toast notifications.
 - 🛡️ **Protected & Isolated API Routes**: Backend middleware verifies tokens and enforces per-user task ownership and completed-task immutability without exposing password hashes.
 - ☁️ **Cloud Database**: Powered by **MongoDB Atlas** with Mongoose schema validation.
@@ -97,7 +97,7 @@ todo-list/
         │   ├── Header.jsx    # Navbar with brand logo, user avatar & logout
         │   ├── Login.jsx     # User Login card with loading & password toggle
         │   ├── Register.jsx  # User Registration card with validation
-        │   ├── UserProfile.jsx# Dashboard with stats, progress bar & layout
+        │   ├── UserProfile.jsx# Responsive dashboard & mobile task-creation layout
         │   ├── CreateTask.jsx# New Task form (title, description, due date)
         │   ├── DateInput.jsx # Free-typing DD/MM/YYYY + calendar date picker
         │   ├── TaskList.jsx  # Search/filter/sort task cards & modals
