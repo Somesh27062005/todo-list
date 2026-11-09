@@ -85,6 +85,7 @@ todo-list/
 │
 └── frontend/                 # React + Vite Client
     ├── index.html            # HTML entry point
+    ├── vercel.json           # Vercel SPA client-side routing rewrite
     ├── vite.config.js        # Vite configuration
     └── src/
         ├── App.jsx           # Main React router & 404 fallback
