@@ -23,6 +23,7 @@ import {
   formatTimestamp,
   getDueDateMeta,
   getLocalDateStr,
+  isTaskOverdue,
   isoToDisplayDate,
   parseDisplayDateToIso,
 } from "../utils/dateUtils";
@@ -67,9 +68,11 @@ function TaskList() {
 
   const counts = useMemo(() => {
     const completed = todos.filter((t) => t.status === "completed").length;
+    const overdue = todos.filter((t) => isTaskOverdue(t)).length;
     return {
       all: todos.length,
       pending: todos.length - completed,
+      overdue,
       completed,
     };
   }, [todos]);
@@ -85,7 +88,11 @@ function TaskList() {
     const query = searchQuery.trim().toLowerCase();
 
     const filtered = todos.filter((todo) => {
-      if (statusFilter !== "all" && todo.status !== statusFilter) return false;
+      if (statusFilter === "overdue") {
+        if (!isTaskOverdue(todo)) return false;
+      } else if (statusFilter !== "all" && todo.status !== statusFilter) {
+        return false;
+      }
 
       if (query) {
         const titleMatch = todo.taskName?.toLowerCase().includes(query);
@@ -325,6 +332,13 @@ function TaskList() {
               onClick={() => setStatusFilter("pending")}
             >
               Pending ({counts.pending})
+            </button>
+            <button
+              type="button"
+              className={`filter-tab-btn ${statusFilter === "overdue" ? "active" : ""}`}
+              onClick={() => setStatusFilter("overdue")}
+            >
+              Overdue ({counts.overdue})
             </button>
             <button
               type="button"
