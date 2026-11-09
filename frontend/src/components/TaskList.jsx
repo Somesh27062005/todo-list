@@ -13,6 +13,7 @@ import {
   FaTimes,
   FaCalendarAlt,
   FaBroom,
+  FaSortAmountDown,
 } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
@@ -361,17 +362,22 @@ function TaskList() {
             </div>
 
             <div className="col-12 col-sm-5">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="form-select form-select-sm"
-                aria-label="Sort tasks"
-              >
-                <option value="newest">Sort: Newest First</option>
-                <option value="oldest">Sort: Oldest First</option>
-                <option value="dueDateAsc">Sort: Due Date (Soonest)</option>
-                <option value="dueDateDesc">Sort: Due Date (Latest)</option>
-              </select>
+              <div className="input-group input-group-sm">
+                <span className="input-group-text bg-light border-end-0 text-muted" title="Sort by">
+                  <FaSortAmountDown />
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="form-select border-start-0"
+                  aria-label="Sort tasks"
+                >
+                  <option value="newest">Recently Added</option>
+                  <option value="oldest">Oldest Added</option>
+                  <option value="dueDateAsc">Earliest Due Date</option>
+                  <option value="dueDateDesc">Latest Due Date</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

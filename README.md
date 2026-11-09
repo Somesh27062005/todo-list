@@ -42,7 +42,7 @@
 - 🔒 **User Authentication**: Secure Registration & Login using **JWT (JSON Web Tokens)**, **HTTP-Only Cookies**, password visibility toggle, and automatic session restoration.
 - 📋 **Full Task Management (CRUD)**: Create, view, edit pending tasks, mark tasks as completed, delete (with confirmation), and bulk-clear completed tasks.
 - 📅 **Due Dates & Overdue Indicators**: Required due dates on tasks with automatic `Overdue`, `Due Today`, and `Due Tomorrow` badges.
-- 🔍 **Search, Filter & Sort**: Real-time search, status tabs (`All`, `Pending`, `Completed`), and sorting by creation date (`Newest First`, `Oldest First`) or due date (`Due Date (Soonest)`, `Due Date (Latest)`).
+- 🔍 **Search, Filter & Sort**: Real-time search, status tabs (`All`, `Pending`, `Completed`), and sorting by `Recently Added`, `Oldest Added`, `Earliest Due Date`, or `Latest Due Date`.
 - 📊 **Dashboard Analytics**: Summary cards for total, pending, completed, and overdue tasks with an overall completion progress bar.
 - ⏳ **Responsive Loading & Toast Feedback**: Loading spinners across auth and task actions (including cold-start server hints) plus real-time toast notifications.
 - 🛡️ **Protected & Isolated API Routes**: Backend middleware verifies tokens and enforces per-user task ownership and completed-task immutability without exposing password hashes.
