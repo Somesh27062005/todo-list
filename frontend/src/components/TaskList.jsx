@@ -14,6 +14,7 @@ import {
   FaCalendarAlt,
   FaBroom,
   FaSortAmountDown,
+  FaPlus,
 } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
@@ -28,7 +29,11 @@ import {
   parseDisplayDateToIso,
 } from "../utils/dateUtils";
 
-function TaskList({ statusFilter: controlledFilter, onStatusFilterChange }) {
+function TaskList({
+  statusFilter: controlledFilter,
+  onStatusFilterChange,
+  onRequestCreate,
+}) {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
     useContext(loginContextObj);
 
@@ -320,7 +325,7 @@ function TaskList({ statusFilter: controlledFilter, onStatusFilterChange }) {
       {todos.length > 0 && (
         <div className="mb-4 pb-3 border-bottom">
           {/* Status Filter Tabs */}
-          <div className="d-flex flex-wrap gap-2 mb-3">
+          <div className="filter-tabs-row mb-3">
             <button
               type="button"
               className={`filter-tab-btn ${statusFilter === "all" ? "active" : ""}`}
@@ -406,7 +411,21 @@ function TaskList({ statusFilter: controlledFilter, onStatusFilterChange }) {
         <div className="text-center py-5 text-muted">
           <FaInbox className="display-4 mb-2 text-secondary opacity-50" />
           <p className="m-0 fw-semibold">No tasks yet</p>
-          <small>Create your first task using the form to get started!</small>
+          <small className="d-block">
+            {onRequestCreate
+              ? "Tap + below to create your first task!"
+              : "Create your first task using the form to get started!"}
+          </small>
+          {onRequestCreate && (
+            <button
+              type="button"
+              className="btn btn-primary-custom btn-sm d-inline-flex align-items-center gap-2 mt-3"
+              onClick={onRequestCreate}
+            >
+              <FaPlus />
+              <span>Add Task</span>
+            </button>
+          )}
         </div>
       ) : filteredAndSortedTodos.length === 0 ? (
         <div className="text-center py-5 text-muted">
@@ -523,7 +542,7 @@ function TaskList({ statusFilter: controlledFilter, onStatusFilterChange }) {
                   <button
                     type="button"
                     disabled={Boolean(completingTaskId)}
-                    className="btn btn-sm btn-success d-inline-flex align-items-center gap-1 rounded-pill px-3"
+                    className="btn btn-sm btn-success d-inline-flex align-items-center gap-1 rounded-pill px-3 task-complete-btn"
                     onClick={() => markTaskCompleted(todoObj)}
                   >
                     {isCompleting ? (

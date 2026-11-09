@@ -24,7 +24,7 @@ function ToastHost() {
   return (
     <ToastContainer
       position="bottom-end"
-      className="p-3 position-fixed"
+      className="p-3 position-fixed toast-host-container"
       style={{ zIndex: 1090 }}
     >
       {toasts.map((toastItem) => (

@@ -1,17 +1,43 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ProgressBar, Spinner } from "react-bootstrap";
-import { FaTasks, FaHourglassHalf, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { Modal, ProgressBar, Spinner } from "react-bootstrap";
+import {
+  FaTasks,
+  FaHourglassHalf,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaPlus,
+  FaPlusCircle,
+} from "react-icons/fa";
 import CreateTask from "./CreateTask";
 import TasksList from "./TaskList";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { isTaskOverdue } from "../utils/dateUtils";
 
+const DESKTOP_BREAKPOINT = "(min-width: 992px)";
+
 function UserProfile() {
   const { currentUser, loginStatus, isAuthChecking } = useContext(loginContextObj);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isDesktopLayout, setIsDesktopLayout] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(DESKTOP_BREAKPOINT).matches : true
+  );
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const taskListRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const mediaQuery = window.matchMedia(DESKTOP_BREAKPOINT);
+    const handleViewportChange = (e) => {
+      setIsDesktopLayout(e.matches);
+      if (e.matches) {
+        setShowCreateModal(false);
+      }
+    };
+    mediaQuery.addEventListener("change", handleViewportChange);
+    return () => mediaQuery.removeEventListener("change", handleViewportChange);
+  }, []);
 
   const handleStatCardSelect = (targetFilter) => {
     setStatusFilter(targetFilter);
@@ -54,14 +80,14 @@ function UserProfile() {
   }
 
   return (
-    <div className="py-2 py-md-3">
+    <div className="py-1 py-md-3 dashboard-mobile-clearance">
       {/* User Welcome Banner */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-2">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-3 mb-md-4 gap-3 gap-md-2">
         <div>
           <h2 className="fw-bold mb-1 text-break">Welcome, {currentUser?.name || "there"}</h2>
           <p className="text-muted small m-0">
             {stats.total === 0
-              ? "Ready to get organized? Add your first task below."
+              ? "Ready to get organized? Add your first task."
               : stats.pending === 0
               ? "All caught up! Every task is completed."
               : `You have ${stats.pending} pending ${stats.pending === 1 ? "task" : "tasks"}.`}
@@ -69,7 +95,7 @@ function UserProfile() {
         </div>
 
         {stats.total > 0 && (
-          <div style={{ minWidth: "220px" }}>
+          <div className="progress-summary-box">
             <div className="d-flex justify-content-between align-items-center mb-1">
               <span className="small fw-semibold text-secondary">Overall Progress</span>
               <span className="small fw-bold text-primary">{stats.completionRate}%</span>
@@ -84,7 +110,7 @@ function UserProfile() {
       </div>
 
       {/* Summary Stats Row */}
-      <div className="row g-3 mb-4">
+      <div className="row g-2 g-md-3 mb-3 mb-md-4">
         <div className="col-6 col-md-3">
           <button
             type="button"
@@ -172,13 +198,54 @@ function UserProfile() {
 
       {/* Main Content Grid */}
       <div className="row g-4 align-items-start">
-        <div className="col-lg-5">
-          <CreateTask />
-        </div>
-        <div className="col-lg-7" ref={taskListRef} style={{ scrollMarginTop: "84px" }}>
-          <TasksList statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} />
+        {isDesktopLayout && (
+          <div className="col-lg-5">
+            <CreateTask />
+          </div>
+        )}
+        <div
+          className={isDesktopLayout ? "col-lg-7" : "col-12"}
+          ref={taskListRef}
+          style={{ scrollMarginTop: "84px" }}
+        >
+          <TasksList
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onRequestCreate={!isDesktopLayout ? () => setShowCreateModal(true) : undefined}
+          />
         </div>
       </div>
+
+      {/* Mobile Floating Action Button (+) */}
+      {!isDesktopLayout && !showCreateModal && (
+        <button
+          type="button"
+          className="mobile-fab-btn"
+          onClick={() => setShowCreateModal(true)}
+          aria-label="Add new task"
+          title="Add new task"
+        >
+          <FaPlus />
+        </button>
+      )}
+
+      {/* Mobile Create Task Modal */}
+      {!isDesktopLayout && (
+        <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered>
+          <Modal.Header closeButton className="border-0 pb-0">
+            <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2">
+              <FaPlusCircle className="text-primary" /> Create New Task
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="pt-2">
+            <CreateTask
+              isModal
+              onCancel={() => setShowCreateModal(false)}
+              onTaskCreated={() => setShowCreateModal(false)}
+            />
+          </Modal.Body>
+        </Modal>
+      )}
     </div>
   );
 }

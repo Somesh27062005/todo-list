@@ -14,7 +14,7 @@ const DEFAULT_TASK_VALUES = {
   dueDate: "",
 };
 
-function CreateTask() {
+function CreateTask({ isModal = false, onTaskCreated, onCancel }) {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
     useContext(loginContextObj);
 
@@ -57,9 +57,11 @@ function CreateTask() {
         setCurrentUser(res.data.payload);
         reset(DEFAULT_TASK_VALUES);
         showToast("Task added successfully!", "success");
+        if (onTaskCreated) onTaskCreated();
       }
     } catch (err) {
       if (err.response?.status === 401) {
+        if (onCancel) onCancel();
         handleSessionExpired();
       } else {
         setCreateErr(err.response?.data?.message || "Failed to add task. Please try again.");
@@ -69,12 +71,16 @@ function CreateTask() {
     }
   };
 
-  return (
-    <div className="custom-card mb-4 mb-md-0">
-      <h4 className="fw-bold mb-1 d-flex align-items-center gap-2">
-        <FaPlusCircle className="text-primary" /> Create New Task
-      </h4>
-      <p className="text-muted small mb-4">Add a new item to your personal to-do list</p>
+  const formContent = (
+    <>
+      {!isModal && (
+        <h4 className="fw-bold mb-1 d-flex align-items-center gap-2">
+          <FaPlusCircle className="text-primary" /> Create New Task
+        </h4>
+      )}
+      <p className={`text-muted small ${isModal ? "mb-3" : "mb-4"}`}>
+        Add a new item to your personal to-do list
+      </p>
 
       {createErr && (
         <div className="alert alert-danger py-2 small" role="alert">
@@ -172,26 +178,62 @@ function CreateTask() {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="btn btn-primary-custom w-100 d-flex align-items-center justify-content-center gap-2"
-        >
-          {isCreating ? (
-            <>
-              <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-              <span>Adding Task...</span>
-            </>
-          ) : (
-            <>
-              <FaPlusCircle className="fs-5" />
-              <span>Add Task</span>
-            </>
-          )}
-        </button>
+        {isModal && onCancel ? (
+          <div className="d-flex justify-content-end gap-2">
+            <button
+              type="button"
+              className="btn btn-light px-4"
+              onClick={onCancel}
+              disabled={isCreating}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isCreating}
+              className="btn btn-primary-custom px-4 d-inline-flex align-items-center justify-content-center gap-2"
+            >
+              {isCreating ? (
+                <>
+                  <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                  <span>Adding Task...</span>
+                </>
+              ) : (
+                <>
+                  <FaPlusCircle className="fs-5" />
+                  <span>Add Task</span>
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="submit"
+            disabled={isCreating}
+            className="btn btn-primary-custom w-100 d-flex align-items-center justify-content-center gap-2"
+          >
+            {isCreating ? (
+              <>
+                <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                <span>Adding Task...</span>
+              </>
+            ) : (
+              <>
+                <FaPlusCircle className="fs-5" />
+                <span>Add Task</span>
+              </>
+            )}
+          </button>
+        )}
       </form>
-    </div>
+    </>
   );
+
+  if (isModal) {
+    return formContent;
+  }
+
+  return <div className="custom-card mb-4 mb-md-0">{formContent}</div>;
 }
 
 export default CreateTask;

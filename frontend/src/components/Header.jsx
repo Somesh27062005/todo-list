@@ -14,7 +14,7 @@ function Header() {
   const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="app-header mb-4">
+    <header className="app-header mb-3 mb-md-4">
       <div className="container d-flex justify-content-between align-items-center gap-2">
         <NavLink
           to={loginStatus ? "/user-profile" : "/"}
@@ -54,16 +54,13 @@ function Header() {
                 <span className="user-avatar-circle" title={displayName}>
                   {userInitial}
                 </span>
-                <span
-                  className="fw-semibold text-dark small text-truncate"
-                  style={{ maxWidth: "150px" }}
-                >
+                <span className="fw-semibold text-dark small text-truncate header-user-name">
                   {displayName}
                 </span>
               </div>
               <button
                 type="button"
-                className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 px-3 py-2 rounded-pill"
+                className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 px-2 px-sm-3 py-1 py-sm-2 rounded-pill"
                 onClick={userLogout}
                 disabled={isLoggingOut}
               >
