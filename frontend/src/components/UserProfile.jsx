@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import { FaTasks, FaHourglassHalf, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
@@ -9,7 +9,19 @@ import { isTaskOverdue } from "../utils/dateUtils";
 
 function UserProfile() {
   const { currentUser, loginStatus, isAuthChecking } = useContext(loginContextObj);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const taskListRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleStatCardSelect = (targetFilter) => {
+    setStatusFilter(targetFilter);
+    if (taskListRef.current) {
+      const rect = taskListRef.current.getBoundingClientRect();
+      if (rect.top < 72 || rect.top > window.innerHeight * 0.65) {
+        taskListRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
 
   useEffect(() => {
     if (!isAuthChecking && (!loginStatus || !currentUser)) {
@@ -74,7 +86,14 @@ function UserProfile() {
       {/* Summary Stats Row */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3">
-          <div className="stat-card d-flex align-items-center justify-content-between">
+          <button
+            type="button"
+            className={`stat-card stat-card-btn w-100 text-start d-flex align-items-center justify-content-between ${
+              statusFilter === "all" ? "stat-card-active" : ""
+            }`}
+            onClick={() => handleStatCardSelect("all")}
+            aria-pressed={statusFilter === "all"}
+          >
             <div>
               <div className="text-muted small fw-medium">Total Tasks</div>
               <div className="fs-4 fw-bold text-dark">{stats.total}</div>
@@ -82,11 +101,18 @@ function UserProfile() {
             <div className="p-2 rounded-3 bg-primary bg-opacity-10 text-primary">
               <FaTasks className="fs-5" />
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="col-6 col-md-3">
-          <div className="stat-card d-flex align-items-center justify-content-between">
+          <button
+            type="button"
+            className={`stat-card stat-card-btn w-100 text-start d-flex align-items-center justify-content-between ${
+              statusFilter === "pending" ? "stat-card-active" : ""
+            }`}
+            onClick={() => handleStatCardSelect("pending")}
+            aria-pressed={statusFilter === "pending"}
+          >
             <div>
               <div className="text-muted small fw-medium">Pending</div>
               <div className="fs-4 fw-bold text-warning-emphasis">{stats.pending}</div>
@@ -94,11 +120,18 @@ function UserProfile() {
             <div className="p-2 rounded-3 bg-warning bg-opacity-10 text-warning">
               <FaHourglassHalf className="fs-5" />
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="col-6 col-md-3">
-          <div className="stat-card d-flex align-items-center justify-content-between">
+          <button
+            type="button"
+            className={`stat-card stat-card-btn w-100 text-start d-flex align-items-center justify-content-between ${
+              statusFilter === "completed" ? "stat-card-active" : ""
+            }`}
+            onClick={() => handleStatCardSelect("completed")}
+            aria-pressed={statusFilter === "completed"}
+          >
             <div>
               <div className="text-muted small fw-medium">Completed</div>
               <div className="fs-4 fw-bold text-success">{stats.completed}</div>
@@ -106,11 +139,18 @@ function UserProfile() {
             <div className="p-2 rounded-3 bg-success bg-opacity-10 text-success">
               <FaCheckCircle className="fs-5" />
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="col-6 col-md-3">
-          <div className="stat-card d-flex align-items-center justify-content-between">
+          <button
+            type="button"
+            className={`stat-card stat-card-btn w-100 text-start d-flex align-items-center justify-content-between ${
+              statusFilter === "overdue" ? "stat-card-active" : ""
+            }`}
+            onClick={() => handleStatCardSelect("overdue")}
+            aria-pressed={statusFilter === "overdue"}
+          >
             <div>
               <div className="text-muted small fw-medium">Overdue</div>
               <div className={`fs-4 fw-bold ${stats.overdue > 0 ? "text-danger" : "text-secondary"}`}>
@@ -126,7 +166,7 @@ function UserProfile() {
             >
               <FaExclamationTriangle className="fs-5" />
             </div>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -135,8 +175,8 @@ function UserProfile() {
         <div className="col-lg-5">
           <CreateTask />
         </div>
-        <div className="col-lg-7">
-          <TasksList />
+        <div className="col-lg-7" ref={taskListRef} style={{ scrollMarginTop: "84px" }}>
+          <TasksList statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} />
         </div>
       </div>
     </div>

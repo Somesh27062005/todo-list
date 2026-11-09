@@ -28,7 +28,7 @@ import {
   parseDisplayDateToIso,
 } from "../utils/dateUtils";
 
-function TaskList() {
+function TaskList({ statusFilter: controlledFilter, onStatusFilterChange }) {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
     useContext(loginContextObj);
 
@@ -48,7 +48,9 @@ function TaskList() {
 
   // Filters & sorting state
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [internalFilter, setInternalFilter] = useState("all");
+  const statusFilter = controlledFilter ?? internalFilter;
+  const setStatusFilter = onStatusFilterChange ?? setInternalFilter;
   const [sortBy, setSortBy] = useState("dueDateAsc");
 
   // Action loading & modal states
