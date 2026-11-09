@@ -17,15 +17,15 @@ const baseCookieOptions = {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function parseDueDate(dueDateValue) {
-  if (dueDateValue === undefined || dueDateValue === null || dueDateValue === "") {
-    return { valid: true, value: null };
+function parseRequiredDueDate(dueDateValue) {
+  if (dueDateValue === undefined || dueDateValue === null || String(dueDateValue).trim() === "") {
+    return { valid: false, missing: true, value: null };
   }
   const parsed = new Date(dueDateValue);
   if (Number.isNaN(parsed.getTime())) {
-    return { valid: false, value: null };
+    return { valid: false, missing: false, value: null };
   }
-  return { valid: true, value: parsed };
+  return { valid: true, missing: false, value: parsed };
 }
 
 // Route for User registration
@@ -123,19 +123,25 @@ userRoute.put("/todo/:userid", verifyToken, async (req, res) => {
 
     const { taskName, description, dueDate } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
+    const trimmedDescription = typeof description === "string" ? description.trim() : "";
 
     if (!trimmedTitle) {
       return res.status(400).json({ message: "Task title is required" });
     }
+    if (!trimmedDescription) {
+      return res.status(400).json({ message: "Task description is required" });
+    }
 
-    const due = parseDueDate(dueDate);
+    const due = parseRequiredDueDate(dueDate);
     if (!due.valid) {
-      return res.status(400).json({ message: "Invalid due date format" });
+      return res.status(400).json({
+        message: due.missing ? "Due date is required" : "Invalid due date format",
+      });
     }
 
     const newTask = {
       taskName: trimmedTitle,
-      description: typeof description === "string" ? description.trim() : "",
+      description: trimmedDescription,
       status: "pending",
       dueDate: due.value,
       createdAt: new Date(),
@@ -168,14 +174,20 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
 
     const { taskName, description, dueDate } = req.body || {};
     const trimmedTitle = typeof taskName === "string" ? taskName.trim() : "";
+    const trimmedDescription = typeof description === "string" ? description.trim() : "";
 
     if (!trimmedTitle) {
       return res.status(400).json({ message: "Task title is required" });
     }
+    if (!trimmedDescription) {
+      return res.status(400).json({ message: "Task description is required" });
+    }
 
-    const due = parseDueDate(dueDate);
+    const due = parseRequiredDueDate(dueDate);
     if (!due.valid) {
-      return res.status(400).json({ message: "Invalid due date format" });
+      return res.status(400).json({
+        message: due.missing ? "Due date is required" : "Invalid due date format",
+      });
     }
 
     const userDoc = await UserModel.findOne({
@@ -198,10 +210,8 @@ userRoute.put("/edit-todo/userid/:userid/taskid/:taskid", verifyToken, async (re
     }
 
     targetTask.taskName = trimmedTitle;
-    targetTask.description = typeof description === "string" ? description.trim() : "";
-    if (dueDate !== undefined) {
-      targetTask.dueDate = due.value;
-    }
+    targetTask.description = trimmedDescription;
+    targetTask.dueDate = due.value;
 
     await userDoc.save();
 

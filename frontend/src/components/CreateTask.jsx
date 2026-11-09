@@ -36,8 +36,8 @@ function CreateTask() {
 
     const payload = {
       taskName: newTask.taskName.trim(),
-      description: newTask.description?.trim() || "",
-      dueDate: newTask.dueDate || null,
+      description: newTask.description.trim(),
+      dueDate: newTask.dueDate,
     };
 
     try {
@@ -67,7 +67,7 @@ function CreateTask() {
       <h4 className="fw-bold mb-1 d-flex align-items-center gap-2">
         <FaPlusCircle className="text-primary" /> Create New Task
       </h4>
-      <p className="text-muted small mb-4">Add a task with optional notes and due date</p>
+      <p className="text-muted small mb-4">Add a new item to your personal to-do list</p>
 
       {createErr && (
         <div className="alert alert-danger py-2 small" role="alert">
@@ -105,16 +105,21 @@ function CreateTask() {
 
         <div className="mb-3">
           <label htmlFor="create-task-desc" className="form-label fw-semibold text-secondary small">
-            Description <span className="text-muted fw-normal">(optional)</span>
+            Description <span className="text-danger">*</span>
           </label>
           <textarea
             id="create-task-desc"
             rows="3"
             disabled={isCreating}
             {...register("description", {
+              required: "Task description is required",
+              validate: (value) => value.trim().length > 0 || "Task description cannot be empty",
               maxLength: {
                 value: 500,
                 message: "Description must be 500 characters or fewer",
+              },
+              onChange: () => {
+                if (createErr) setCreateErr("");
               },
             })}
             className="form-control form-control-custom"
@@ -127,15 +132,23 @@ function CreateTask() {
 
         <div className="mb-4">
           <label htmlFor="create-task-due" className="form-label fw-semibold text-secondary small">
-            Due Date <span className="text-muted fw-normal">(optional)</span>
+            Due Date <span className="text-danger">*</span>
           </label>
           <input
             id="create-task-due"
             type="date"
             disabled={isCreating}
-            {...register("dueDate")}
+            {...register("dueDate", {
+              required: "Due date is required",
+              onChange: () => {
+                if (createErr) setCreateErr("");
+              },
+            })}
             className="form-control form-control-custom"
           />
+          {errors?.dueDate && (
+            <small className="text-danger mt-1 d-block">{errors.dueDate.message}</small>
+          )}
         </div>
 
         <button

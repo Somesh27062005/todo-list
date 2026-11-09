@@ -26,8 +26,6 @@ function TaskList() {
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -36,8 +34,6 @@ function TaskList() {
       dueDate: "",
     },
   });
-
-  const editDueDateValue = watch("dueDate", "");
 
   // Filters & sorting state
   const [searchQuery, setSearchQuery] = useState("");
@@ -163,8 +159,8 @@ function TaskList() {
 
     const payload = {
       taskName: modifiedTaskObj.taskName.trim(),
-      description: modifiedTaskObj.description?.trim() || "",
-      dueDate: modifiedTaskObj.dueDate || null,
+      description: modifiedTaskObj.description.trim(),
+      dueDate: modifiedTaskObj.dueDate,
     };
 
     try {
@@ -552,13 +548,15 @@ function TaskList() {
 
             <div className="mb-3">
               <label htmlFor="edit-task-desc" className="form-label fw-semibold text-secondary small">
-                Description
+                Description <span className="text-danger">*</span>
               </label>
               <textarea
                 id="edit-task-desc"
                 rows="3"
                 disabled={isSavingEdit}
                 {...register("description", {
+                  required: "Task description is required",
+                  validate: (v) => v.trim().length > 0 || "Task description cannot be empty",
                   maxLength: {
                     value: 500,
                     message: "Description must be 500 characters or fewer",
@@ -572,28 +570,21 @@ function TaskList() {
             </div>
 
             <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <label htmlFor="edit-task-due" className="form-label fw-semibold text-secondary small m-0">
-                  Due Date <span className="text-muted fw-normal">(optional)</span>
-                </label>
-                {editDueDateValue && (
-                  <button
-                    type="button"
-                    className="btn btn-link btn-sm p-0 text-decoration-none small"
-                    onClick={() => setValue("dueDate", "")}
-                    disabled={isSavingEdit}
-                  >
-                    Clear date
-                  </button>
-                )}
-              </div>
+              <label htmlFor="edit-task-due" className="form-label fw-semibold text-secondary small">
+                Due Date <span className="text-danger">*</span>
+              </label>
               <input
                 id="edit-task-due"
                 type="date"
                 disabled={isSavingEdit}
-                {...register("dueDate")}
+                {...register("dueDate", {
+                  required: "Due date is required",
+                })}
                 className="form-control form-control-custom"
               />
+              {errors?.dueDate && (
+                <small className="text-danger mt-1 d-block">{errors.dueDate.message}</small>
+              )}
             </div>
 
             <div className="d-flex justify-content-end gap-2">
