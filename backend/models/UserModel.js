@@ -1,33 +1,78 @@
 import { Schema, model } from "mongoose";
 
-//create user schema
+const todoSchema = new Schema({
+  taskName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  status: {
+    type: String,
+    enum: ["pending", "completed"],
+    default: "pending",
+  },
+  priority: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    default: "medium",
+  },
+  category: {
+    type: String,
+    trim: true,
+    default: "General",
+  },
+  dueDate: {
+    type: Date,
+    default: null,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  completedAt: {
+    type: Date,
+    default: null,
+  },
+});
+
+// Create user schema
 const userSchema = new Schema(
   {
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
-      unique:[true,"Email already existed"]
+      unique: true,
+      trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
       required: true,
     },
-    todos: [
-      {
-        taskName: { type: String, required: true },
-        description: { type: String, required: true },
-        status: { type: String, default: "pending" },
-        createdAt: { type: Date, default: Date.now },
-        completedAt: { type: Date },
-      },
-    ],
+    todos: [todoSchema],
   },
-  { versionKey: false, timestamps: true, strict: true }
+  {
+    versionKey: false,
+    timestamps: true,
+    strict: true,
+    toJSON: {
+      transform(_doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
+  }
 );
 
-//generate user model for the above user schema
+// Generate user model for the above user schema
 export const UserModel = model("user", userSchema);

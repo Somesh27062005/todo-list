@@ -1,45 +1,85 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useContext } from "react";
-import { loginContextObj } from "../contexts/LoginContext";
+import { Spinner } from "react-bootstrap";
+import { loginContextObj } from "../contexts/loginContextObj";
 import { FaCheckSquare, FaSignOutAlt, FaSignInAlt, FaUserPlus } from "react-icons/fa";
 
 function Header() {
-  const { loginStatus, userLogout, currentUser } = useContext(loginContextObj);
+  const { loginStatus, userLogout, currentUser, isAuthChecking, isLoggingOut } =
+    useContext(loginContextObj);
+  const location = useLocation();
+
+  const isLoginRoute = location.pathname === "/" || location.pathname === "/login";
+  const userInitial = currentUser?.name?.trim()?.charAt(0)?.toUpperCase() || "U";
 
   return (
     <header className="app-header mb-4">
-      <div className="container d-flex justify-content-between align-items-center">
-        <NavLink to="/" className="brand-logo d-flex align-items-center gap-2">
+      <div className="container d-flex justify-content-between align-items-center gap-2">
+        <NavLink
+          to={loginStatus ? "/user-profile" : "/"}
+          className="brand-logo d-flex align-items-center gap-2"
+        >
           <FaCheckSquare className="fs-3 text-primary" />
           <span>TaskFlow</span>
         </NavLink>
 
         <ul className="nav align-items-center gap-2 m-0">
-          {loginStatus === false ? (
+          {isAuthChecking ? (
+            <li className="nav-item d-flex align-items-center gap-2 text-muted small px-2">
+              <Spinner animation="border" size="sm" variant="primary" />
+              <span className="d-none d-sm-inline">Checking session...</span>
+            </li>
+          ) : loginStatus === false ? (
             <>
               <li className="nav-item">
-                <NavLink className="nav-link-custom d-flex align-items-center gap-1" to="/">
+                <NavLink
+                  className={`nav-link-custom d-flex align-items-center gap-1 ${
+                    isLoginRoute ? "active" : ""
+                  }`}
+                  to="/login"
+                >
                   <FaSignInAlt /> Login
                 </NavLink>
               </li>
               <li className="nav-item">
-                <NavLink className="nav-link-custom d-flex align-items-center gap-1" to="register">
+                <NavLink className="nav-link-custom d-flex align-items-center gap-1" to="/register">
                   <FaUserPlus /> Register
                 </NavLink>
               </li>
             </>
           ) : (
-            <li className="nav-item d-flex align-items-center gap-3">
-              {currentUser?.email && (
-                <span className="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace">
-                  {currentUser.email}
+            <li className="nav-item d-flex align-items-center gap-2 gap-md-3">
+              <div className="d-flex align-items-center gap-2">
+                <span className="user-avatar-circle" title={currentUser?.name || currentUser?.email}>
+                  {userInitial}
                 </span>
-              )}
+                {currentUser?.name && (
+                  <span className="fw-semibold text-dark small d-none d-sm-inline">
+                    {currentUser.name}
+                  </span>
+                )}
+                {currentUser?.email && (
+                  <span className="badge bg-light text-secondary border px-2 py-1 rounded-pill font-monospace d-none d-md-inline">
+                    {currentUser.email}
+                  </span>
+                )}
+              </div>
               <button
+                type="button"
                 className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 px-3 py-2 rounded-pill"
                 onClick={userLogout}
+                disabled={isLoggingOut}
               >
-                <FaSignOutAlt /> Logout
+                {isLoggingOut ? (
+                  <>
+                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                    <span>Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSignOutAlt /> <span>Logout</span>
+                  </>
+                )}
               </button>
             </li>
           )}

@@ -39,13 +39,14 @@
 
 ## 🌟 Key Features
 
-- 🔒 **User Authentication**: Secure Registration & Login using **JWT (JSON Web Tokens)** and **HTTP-Only Cookies**.
-- 📋 **Task Management (CRUD)**: Create, view, edit, mark as completed, and delete personal tasks.
-- 🎨 **Modern Design System**: Designed with `Plus Jakarta Sans` typography, soft cards, interactive hover states, and FontAwesome icons.
-- 🕒 **Timestamp Tracking**: Tracks task creation (`createdAt`) and completion (`completedAt`) dates.
-- 🏷️ **Visual Task Statuses**: Strikethrough completed styling, green left accent borders, and status badges (`Completed` vs `Pending`).
-- 🛡️ **Protected API Routes**: Backend middleware verifies tokens on all task endpoints.
-- ☁️ **Cloud Database**: Powered by **MongoDB Atlas** with multi-tenant database isolation.
+- 🔒 **User Authentication**: Secure Registration & Login using **JWT (JSON Web Tokens)**, **HTTP-Only Cookies**, password visibility toggle, and automatic session restoration.
+- 📋 **Full Task Management (CRUD)**: Create, view, edit, toggle (`Pending` ↔ `Completed`), delete (with confirmation), and bulk-clear completed tasks.
+- 🎯 **Priorities, Categories & Due Dates**: Tag tasks by priority (`High`, `Medium`, `Low`), organize by category (`Work`, `Personal`, `Study`, etc.), and track due dates with automatic `Overdue` / `Due Today` indicators.
+- 🔍 **Search, Filter & Sort**: Real-time search, status tabs (`All`, `Pending`, `Completed`), priority/category filters, and multi-criteria sorting.
+- 📊 **Dashboard Analytics**: Summary cards for total, pending, completed, and overdue tasks with an overall completion progress bar.
+- ⏳ **Responsive Loading & Toast Feedback**: Loading spinners across auth and task actions (including cold-start server hints) plus real-time toast notifications.
+- 🛡️ **Protected & Isolated API Routes**: Backend middleware verifies tokens and enforces per-user task ownership on every endpoint without exposing password hashes.
+- ☁️ **Cloud Database**: Powered by **MongoDB Atlas** with Mongoose schema validation.
 
 <br />
 
@@ -86,18 +87,25 @@ todo-list/
     ├── index.html            # HTML entry point
     ├── vite.config.js        # Vite configuration
     └── src/
-        ├── App.jsx           # Main React router
+        ├── App.jsx           # Main React router & 404 fallback
         ├── config.js         # Dynamic API URL resolver
-        ├── index.css        # Global CSS variables & components
+        ├── index.css         # Global CSS variables & components
+        ├── constants/
+        │   └── tasks.js      # Task categories & priority options
+        ├── utils/
+        │   └── dateUtils.js  # Timezone-safe due date & timestamp helpers
         ├── components/
-        │   ├── Header.jsx    # Navbar with brand logo & auth controls
-        │   ├── Login.jsx     # User Login card component
-        │   ├── Register.jsx  # User Registration card component
-        │   ├── UserProfile.jsx# User Dashboard layout
-        │   ├── CreateTask.jsx# New Task creation card
-        │   └── TaskList.jsx  # Task list cards & edit modal
+        │   ├── Header.jsx    # Navbar with brand logo, user avatar & logout
+        │   ├── Login.jsx     # User Login card with loading & password toggle
+        │   ├── Register.jsx  # User Registration card with validation
+        │   ├── UserProfile.jsx# Dashboard with stats, progress bar & layout
+        │   ├── CreateTask.jsx# New Task form (priority, category, due date)
+        │   ├── TaskList.jsx  # Search/filter/sort task cards & modals
+        │   ├── ToastHost.jsx # Global toast notifications
+        │   └── NotFound.jsx  # 404 fallback view
         └── contexts/
-            └── LoginContext.jsx # Global user auth state
+            ├── loginContextObj.js # React context instance
+            └── LoginContext.jsx   # Global auth, loading & toast state
 ```
 
 <br />
@@ -111,9 +119,10 @@ todo-list/
 | `GET` | `/user-api/logout` | Clear authentication token cookie | ❌ |
 | `GET` | `/refresh` | Verify session & fetch current user payload | `verifyToken` |
 | `PUT` | `/user-api/todo/:userid` | Add a new task to user's list | `verifyToken` |
-| `PUT` | `/user-api/edit-todo/userid/:userid/taskid/:taskid` | Edit task title & description | `verifyToken` |
-| `PUT` | `/user-api/edit-status/userid/:userid/taskid/:taskid` | Mark task status as completed | `verifyToken` |
+| `PUT` | `/user-api/edit-todo/userid/:userid/taskid/:taskid` | Edit task title, description, priority, category & due date | `verifyToken` |
+| `PUT` | `/user-api/edit-status/userid/:userid/taskid/:taskid` | Toggle or set task status (`pending` ↔ `completed`) | `verifyToken` |
 | `PUT` | `/user-api/delete-todo/userid/:userid/taskid/:taskid` | Remove a task from user's list | `verifyToken` |
+| `PUT` | `/user-api/clear-completed/:userid` | Remove all completed tasks from user's list | `verifyToken` |
 
 <br />
 
