@@ -1,7 +1,7 @@
 import { useContext, useMemo, useState } from "react";
 import axios from "axios";
 import { Modal, Spinner } from "react-bootstrap";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   FaEdit,
   FaTrash,
@@ -16,7 +16,14 @@ import {
 } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
-import { extractDateOnlyStr, formatTimestamp, getDueDateMeta } from "../utils/dateUtils";
+import DateInput from "./DateInput";
+import {
+  extractDateOnlyStr,
+  formatTimestamp,
+  getDueDateMeta,
+  isoToDisplayDate,
+  parseDisplayDateToIso,
+} from "../utils/dateUtils";
 
 function TaskList() {
   const { currentUser, setCurrentUser, handleSessionExpired, showToast } =
@@ -24,6 +31,7 @@ function TaskList() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -138,7 +146,7 @@ function TaskList() {
     reset({
       taskName: taskObj.taskName || "",
       description: taskObj.description || "",
-      dueDate: extractDateOnlyStr(taskObj.dueDate),
+      dueDate: isoToDisplayDate(taskObj.dueDate),
     });
     setModalState(true);
   };
@@ -154,13 +162,16 @@ function TaskList() {
     if (!currentUser?._id || !taskBeingEdited?._id || isSavingEdit) return;
     if (taskBeingEdited.status === "completed") return;
 
+    const isoDueDate = parseDisplayDateToIso(modifiedTaskObj.dueDate);
+    if (!isoDueDate) return;
+
     setEditErr("");
     setIsSavingEdit(true);
 
     const payload = {
       taskName: modifiedTaskObj.taskName.trim(),
       description: modifiedTaskObj.description.trim(),
-      dueDate: modifiedTaskObj.dueDate,
+      dueDate: isoDueDate,
     };
 
     try {
@@ -573,14 +584,23 @@ function TaskList() {
               <label htmlFor="edit-task-due" className="form-label fw-semibold text-secondary small">
                 Due Date <span className="text-danger">*</span>
               </label>
-              <input
-                id="edit-task-due"
-                type="date"
-                disabled={isSavingEdit}
-                {...register("dueDate", {
+              <Controller
+                name="dueDate"
+                control={control}
+                rules={{
                   required: "Due date is required",
-                })}
-                className="form-control form-control-custom"
+                  validate: (v) =>
+                    Boolean(parseDisplayDateToIso(v)) || "Please enter a valid date (DD/MM/YYYY)",
+                }}
+                render={({ field }) => (
+                  <DateInput
+                    id="edit-task-due"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isSavingEdit}
+                  />
+                )}
               />
               {errors?.dueDate && (
                 <small className="text-danger mt-1 d-block">{errors.dueDate.message}</small>

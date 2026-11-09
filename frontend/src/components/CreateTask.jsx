@@ -1,10 +1,12 @@
 import { useContext, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import axios from "axios";
 import { Spinner } from "react-bootstrap";
 import { FaPlusCircle } from "react-icons/fa";
 import { loginContextObj } from "../contexts/loginContextObj";
 import { API_BASE_URL } from "../config";
+import DateInput from "./DateInput";
+import { parseDisplayDateToIso } from "../utils/dateUtils";
 
 const DEFAULT_TASK_VALUES = {
   taskName: "",
@@ -21,6 +23,7 @@ function CreateTask() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -31,13 +34,16 @@ function CreateTask() {
   const onSubmitNewTask = async (newTask) => {
     if (!currentUser?._id || isCreating) return;
 
+    const isoDueDate = parseDisplayDateToIso(newTask.dueDate);
+    if (!isoDueDate) return;
+
     setCreateErr("");
     setIsCreating(true);
 
     const payload = {
       taskName: newTask.taskName.trim(),
       description: newTask.description.trim(),
-      dueDate: newTask.dueDate,
+      dueDate: isoDueDate,
     };
 
     try {
@@ -134,17 +140,26 @@ function CreateTask() {
           <label htmlFor="create-task-due" className="form-label fw-semibold text-secondary small">
             Due Date <span className="text-danger">*</span>
           </label>
-          <input
-            id="create-task-due"
-            type="date"
-            disabled={isCreating}
-            {...register("dueDate", {
+          <Controller
+            name="dueDate"
+            control={control}
+            rules={{
               required: "Due date is required",
-              onChange: () => {
-                if (createErr) setCreateErr("");
-              },
-            })}
-            className="form-control form-control-custom"
+              validate: (value) =>
+                Boolean(parseDisplayDateToIso(value)) || "Please enter a valid date (DD/MM/YYYY)",
+            }}
+            render={({ field }) => (
+              <DateInput
+                id="create-task-due"
+                value={field.value}
+                onChange={(val) => {
+                  field.onChange(val);
+                  if (createErr) setCreateErr("");
+                }}
+                onBlur={field.onBlur}
+                disabled={isCreating}
+              />
+            )}
           />
           {errors?.dueDate && (
             <small className="text-danger mt-1 d-block">{errors.dueDate.message}</small>

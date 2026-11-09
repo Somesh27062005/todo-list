@@ -16,6 +16,53 @@ export function extractDateOnlyStr(dateValue) {
   return getLocalDateStr(parsed);
 }
 
+export function isoToDisplayDate(isoValue) {
+  const dateOnly = extractDateOnlyStr(isoValue);
+  if (!dateOnly) return "";
+  const [year, month, day] = dateOnly.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+export function parseDisplayDateToIso(inputValue) {
+  if (typeof inputValue !== "string") return "";
+  const trimmed = inputValue.trim();
+  if (!trimmed) return "";
+
+  let day;
+  let month;
+  let year;
+
+  // Support DD/MM/YYYY, D/M/YYYY, DD-MM-YYYY, D-M-YYYY
+  const dmyMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    day = Number(dmyMatch[1]);
+    month = Number(dmyMatch[2]);
+    year = Number(dmyMatch[3]);
+  } else {
+    // Also accept YYYY-MM-DD if pasted
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (!isoMatch) return "";
+    year = Number(isoMatch[1]);
+    month = Number(isoMatch[2]);
+    day = Number(isoMatch[3]);
+  }
+
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+    return "";
+  }
+
+  const probe = new Date(year, month - 1, day);
+  if (
+    probe.getFullYear() !== year ||
+    probe.getMonth() !== month - 1 ||
+    probe.getDate() !== day
+  ) {
+    return "";
+  }
+
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 export function isTaskOverdue(todo) {
   if (!todo || todo.status === "completed" || !todo.dueDate) return false;
   const dueStr = extractDateOnlyStr(todo.dueDate);

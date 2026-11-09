@@ -98,6 +98,7 @@ todo-list/
         │   ├── Register.jsx  # User Registration card with validation
         │   ├── UserProfile.jsx# Dashboard with stats, progress bar & layout
         │   ├── CreateTask.jsx# New Task form (title, description, due date)
+        │   ├── DateInput.jsx # Free-typing DD/MM/YYYY + calendar date picker
         │   ├── TaskList.jsx  # Search/filter/sort task cards & modals
         │   ├── ToastHost.jsx # Global toast notifications
         │   └── NotFound.jsx  # 404 fallback view
