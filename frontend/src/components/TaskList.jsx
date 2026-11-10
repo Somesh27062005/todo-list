@@ -337,7 +337,9 @@ function TaskList({ onRequestCreate }) {
             </button>
             <button
               type="button"
-              className={`filter-tab-btn ${statusFilter === "overdue" ? "active" : ""}`}
+              className={`filter-tab-btn ${
+                counts.overdue > 0 && statusFilter !== "overdue" ? "filter-tab-overdue" : ""
+              } ${statusFilter === "overdue" ? "active active-overdue" : ""}`}
               onClick={() => setStatusFilter("overdue")}
             >
               Overdue ({counts.overdue})
@@ -442,10 +444,13 @@ function TaskList({ onRequestCreate }) {
           const dueMeta = getDueDateMeta(todoObj.dueDate, todoObj.status);
           const isCompleting = completingTaskId === todoObj._id;
           const isCompleted = todoObj.status === "completed";
+          const isOverdue = isTaskOverdue(todoObj);
 
           return (
             <div
-              className={`task-item-card ${isCompleted ? "task-completed-card" : ""}`}
+              className={`task-item-card ${
+                isCompleted ? "task-completed-card" : isOverdue ? "task-overdue-card" : ""
+              }`}
               key={todoObj._id}
             >
               <div className="d-flex justify-content-between align-items-start gap-2 mb-2">

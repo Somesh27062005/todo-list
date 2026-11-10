@@ -5,6 +5,7 @@ import { FaPlus, FaPlusCircle } from "react-icons/fa";
 import CreateTask from "./CreateTask";
 import TasksList from "./TaskList";
 import { loginContextObj } from "../contexts/loginContextObj";
+import { isTaskOverdue } from "../utils/dateUtils";
 
 const DESKTOP_BREAKPOINT = "(min-width: 992px)";
 
@@ -38,7 +39,8 @@ function UserProfile() {
   const taskSummary = useMemo(() => {
     const todos = currentUser?.todos || [];
     const pending = todos.filter((t) => t.status !== "completed").length;
-    return { total: todos.length, pending };
+    const overdue = todos.filter((t) => isTaskOverdue(t)).length;
+    return { total: todos.length, pending, overdue };
   }, [currentUser]);
 
   if (isAuthChecking || !currentUser) {
@@ -60,11 +62,20 @@ function UserProfile() {
       <div className="mb-3 mb-md-4">
         <h2 className="fw-bold mb-1 text-break">Welcome, {currentUser?.name || "there"}</h2>
         <p className="text-muted small m-0">
-          {taskSummary.total === 0
-            ? "Ready to get organized? Add your first task."
-            : taskSummary.pending === 0
-            ? "All caught up! Every task is completed."
-            : `You have ${taskSummary.pending} pending ${taskSummary.pending === 1 ? "task" : "tasks"}.`}
+          {taskSummary.total === 0 ? (
+            "Ready to get organized? Add your first task."
+          ) : taskSummary.pending === 0 ? (
+            "All caught up! Every task is completed."
+          ) : (
+            <>
+              You have {taskSummary.pending} pending{" "}
+              {taskSummary.pending === 1 ? "task" : "tasks"}
+              {taskSummary.overdue > 0 && (
+                <span className="text-danger fw-medium"> ({taskSummary.overdue} overdue)</span>
+              )}
+              .
+            </>
+          )}
         </p>
       </div>
 

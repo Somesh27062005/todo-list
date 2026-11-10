@@ -233,6 +233,24 @@ body {
   border-color: var(--primary-color);
 }
 
+.filter-tab-btn.filter-tab-overdue {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.filter-tab-btn.filter-tab-overdue:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.filter-tab-btn.active.active-overdue {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
 /* Status & Due Date Badges */
 .badge-pending {
   background-color: #fef3c7;
@@ -280,6 +298,17 @@ body {
   padding: 0.25rem 0.6rem;
   border-radius: 2rem;
   font-size: 0.74rem;
+}
+
+.task-overdue-card {
+  background-color: #fffafa;
+  border-color: #fecaca;
+  border-left: 4px solid #ef4444 !important;
+}
+
+.task-overdue-card:hover {
+  border-color: #fca5a5;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.08);
 }
 
 .task-completed-card {
@@ -401,6 +430,17 @@ body {
 
   .filter-tab-btn.active {
     box-shadow: 0 1px 3px rgba(79, 70, 229, 0.28);
+  }
+
+  .filter-tab-btn.filter-tab-overdue {
+    background-color: transparent;
+    color: #dc2626;
+  }
+
+  .filter-tab-btn.active.active-overdue {
+    background-color: #dc2626;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
   }
 
   .search-sort-row {
