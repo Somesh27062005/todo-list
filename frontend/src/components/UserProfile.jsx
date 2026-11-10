@@ -1,11 +1,10 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaPlusCircle } from "react-icons/fa";
 import CreateTask from "./CreateTask";
 import TasksList from "./TaskList";
 import { loginContextObj } from "../contexts/loginContextObj";
-import { isTaskOverdue } from "../utils/dateUtils";
 
 const DESKTOP_BREAKPOINT = "(min-width: 992px)";
 
@@ -36,13 +35,6 @@ function UserProfile() {
     }
   }, [isAuthChecking, loginStatus, currentUser, navigate]);
 
-  const taskSummary = useMemo(() => {
-    const todos = currentUser?.todos || [];
-    const overdue = todos.filter((t) => isTaskOverdue(t)).length;
-    const pending = todos.filter((t) => t.status !== "completed" && !isTaskOverdue(t)).length;
-    return { total: todos.length, pending, overdue };
-  }, [currentUser]);
-
   if (isAuthChecking || !currentUser) {
     return (
       <div className="row justify-content-center mt-5">
@@ -60,30 +52,7 @@ function UserProfile() {
     <div className="py-1 py-md-3 dashboard-mobile-clearance">
       {/* User Welcome Banner */}
       <div className="mb-3 mb-md-4">
-        <h2 className="fw-bold mb-1 text-break">Welcome, {currentUser?.name || "there"}</h2>
-        <p className="text-muted small m-0">
-          {taskSummary.total === 0 ? (
-            "Ready to get organized? Add your first task."
-          ) : taskSummary.pending === 0 && taskSummary.overdue === 0 ? (
-            "All caught up! Every task is completed."
-          ) : (
-            <>
-              You have{" "}
-              {taskSummary.overdue > 0 && (
-                <>
-                  <span className="text-danger fw-medium">{taskSummary.overdue} overdue</span>
-                  {taskSummary.pending > 0 ? " and " : taskSummary.overdue === 1 ? " task" : " tasks"}
-                </>
-              )}
-              {taskSummary.pending > 0 && (
-                <>
-                  {taskSummary.pending} pending {taskSummary.pending === 1 ? "task" : "tasks"}
-                </>
-              )}
-              .
-            </>
-          )}
-        </p>
+        <h2 className="fw-bold m-0 text-break">Welcome, {currentUser?.name || "there"}</h2>
       </div>
 
       {/* Main Content Grid */}

@@ -340,9 +340,7 @@ function TaskList({ onRequestCreate }) {
             </button>
             <button
               type="button"
-              className={`filter-tab-btn ${
-                counts.overdue > 0 && statusFilter !== "overdue" ? "filter-tab-overdue" : ""
-              } ${statusFilter === "overdue" ? "active active-overdue" : ""}`}
+              className={`filter-tab-btn ${statusFilter === "overdue" ? "active" : ""}`}
               onClick={() => setStatusFilter("overdue")}
             >
               Overdue ({counts.overdue})

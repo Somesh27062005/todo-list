@@ -233,24 +233,6 @@ body {
   border-color: var(--primary-color);
 }
 
-.filter-tab-btn.filter-tab-overdue {
-  background-color: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
-.filter-tab-btn.filter-tab-overdue:hover {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border-color: #fca5a5;
-}
-
-.filter-tab-btn.active.active-overdue {
-  background-color: #dc2626;
-  border-color: #dc2626;
-  color: #ffffff;
-}
-
 /* Status & Due Date Badges */
 .badge-pending {
   background-color: #fef3c7;
@@ -439,17 +421,6 @@ body {
 
   .filter-tab-btn.active {
     box-shadow: 0 1px 3px rgba(79, 70, 229, 0.28);
-  }
-
-  .filter-tab-btn.filter-tab-overdue {
-    background-color: transparent;
-    color: #dc2626;
-  }
-
-  .filter-tab-btn.active.active-overdue {
-    background-color: #dc2626;
-    color: #ffffff;
-    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
   }
 
   .search-sort-row {
