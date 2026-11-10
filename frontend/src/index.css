@@ -261,6 +261,15 @@ body {
   font-size: 0.76rem;
 }
 
+.badge-overdue {
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 2rem;
+  font-size: 0.76rem;
+}
+
 .badge-completed {
   background-color: #dcfce7;
   color: #15803d;

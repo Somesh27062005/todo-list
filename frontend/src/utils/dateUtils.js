@@ -87,7 +87,7 @@ export function getDueDateMeta(dueDateValue, status) {
   });
 
   if (status !== "completed" && dueStr < todayStr) {
-    return { label: `Overdue (${displayDate})`, className: "badge-due-overdue" };
+    return { label: `Due ${displayDate}`, className: "badge-due-overdue" };
   }
   if (dueStr === todayStr) {
     return {

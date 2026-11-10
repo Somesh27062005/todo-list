@@ -70,9 +70,10 @@ function TaskList({ onRequestCreate }) {
   const counts = useMemo(() => {
     const completed = todos.filter((t) => t.status === "completed").length;
     const overdue = todos.filter((t) => isTaskOverdue(t)).length;
+    const pending = todos.length - completed - overdue;
     return {
       all: todos.length,
-      pending: todos.length - completed,
+      pending,
       overdue,
       completed,
     };
@@ -91,8 +92,10 @@ function TaskList({ onRequestCreate }) {
     const filtered = todos.filter((todo) => {
       if (statusFilter === "overdue") {
         if (!isTaskOverdue(todo)) return false;
-      } else if (statusFilter !== "all" && todo.status !== statusFilter) {
-        return false;
+      } else if (statusFilter === "pending") {
+        if (todo.status === "completed" || isTaskOverdue(todo)) return false;
+      } else if (statusFilter === "completed") {
+        if (todo.status !== "completed") return false;
       }
 
       if (query) {
@@ -459,6 +462,8 @@ function TaskList({ onRequestCreate }) {
                     className={
                       isCompleted
                         ? "badge-completed d-inline-flex align-items-center gap-1"
+                        : isOverdue
+                        ? "badge-overdue"
                         : "badge-pending"
                     }
                   >
@@ -466,6 +471,8 @@ function TaskList({ onRequestCreate }) {
                       <>
                         <FaCheck /> Completed
                       </>
+                    ) : isOverdue ? (
+                      "Overdue"
                     ) : (
                       "Pending"
                     )}

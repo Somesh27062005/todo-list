@@ -38,8 +38,8 @@ function UserProfile() {
 
   const taskSummary = useMemo(() => {
     const todos = currentUser?.todos || [];
-    const pending = todos.filter((t) => t.status !== "completed").length;
     const overdue = todos.filter((t) => isTaskOverdue(t)).length;
+    const pending = todos.filter((t) => t.status !== "completed" && !isTaskOverdue(t)).length;
     return { total: todos.length, pending, overdue };
   }, [currentUser]);
 
@@ -64,14 +64,21 @@ function UserProfile() {
         <p className="text-muted small m-0">
           {taskSummary.total === 0 ? (
             "Ready to get organized? Add your first task."
-          ) : taskSummary.pending === 0 ? (
+          ) : taskSummary.pending === 0 && taskSummary.overdue === 0 ? (
             "All caught up! Every task is completed."
           ) : (
             <>
-              You have {taskSummary.pending} pending{" "}
-              {taskSummary.pending === 1 ? "task" : "tasks"}
+              You have{" "}
               {taskSummary.overdue > 0 && (
-                <span className="text-danger fw-medium"> ({taskSummary.overdue} overdue)</span>
+                <>
+                  <span className="text-danger fw-medium">{taskSummary.overdue} overdue</span>
+                  {taskSummary.pending > 0 ? " and " : taskSummary.overdue === 1 ? " task" : " tasks"}
+                </>
+              )}
+              {taskSummary.pending > 0 && (
+                <>
+                  {taskSummary.pending} pending {taskSummary.pending === 1 ? "task" : "tasks"}
+                </>
               )}
               .
             </>
